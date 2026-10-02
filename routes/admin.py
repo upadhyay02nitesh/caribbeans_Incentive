@@ -144,8 +144,13 @@ def inject_admin():
     hour = datetime.now().hour
     if session.get("admin_logged_in") and "nav_counts" not in g:
         _load()
-    if session.get("admin_logged_in"):
-        sellsy.pipeline_snapshot()  # warms / refreshes the Sellsy tab in the background
+    # Sellsy warming used to run on every admin page via run_background(), which
+    # is a real background thread on a long-lived server but runs INLINE on
+    # Vercel (services/runtime.py) - so it was blocking every admin page on a
+    # Sellsy API round trip whenever the snapshot went stale, even pages that
+    # never show Sellsy data. The dashboard and Sellsy-tab routes already call
+    # pipeline_snapshot() directly when they need it, so this was pure latency
+    # tax on everything else.
     counts = g.get("nav_counts", {})
     return {
         "admin_user": session.get("admin_username", "admin"),
