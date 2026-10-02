@@ -12,3 +12,4 @@ CLAUDE.md
 CLAUDE_CODE_BUILD_PROMPT.md
 !knowledge/*.pdf
 !knowledge/*.csv
+!static/docs/*.pdf
