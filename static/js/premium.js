@@ -20,7 +20,7 @@
   window.addEventListener("scroll", () => { if (!barRaf) barRaf = requestAnimationFrame(syncBar); }, { passive: true });
   syncBar();
 
-  if (reduce) { drawWaveOnce(); return; }
+  if (reduce) return;
 
   /* ------------------------------------------- hero: spotlight + depth */
   const hero = document.getElementById("hero");
@@ -112,83 +112,5 @@
         { clipPath: "inset(0% 0% 0% 0% round 0px)", ease: "none",
           scrollTrigger: { trigger: band, start: "top 96%", end: "top 30%", scrub: 0.6 } });
     });
-  }
-
-  /* ------------------------------------------ 3D ocean wave particle field */
-  startWave();
-
-  function makeWave() {
-    const host = document.querySelector(".page-home .map-section");
-    if (!host) return null;
-    const canvas = document.createElement("canvas");
-    canvas.className = "wave-field";
-    canvas.setAttribute("aria-hidden", "true");
-    host.prepend(canvas);
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return null;
-
-    const COLS = 72, ROWS = 26;
-    const light = host.classList.contains("map-section--light");
-    const pointer = { x: -9999, y: -9999 };
-    let w = 0, h = 0, dpr = 1;
-
-    const resize = () => {
-      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      w = canvas.clientWidth; h = canvas.clientHeight;
-      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-    host.addEventListener("pointermove", (e) => {
-      const r = canvas.getBoundingClientRect();
-      pointer.x = e.clientX - r.left; pointer.y = e.clientY - r.top;
-    });
-    host.addEventListener("pointerleave", () => { pointer.x = pointer.y = -9999; });
-
-    const draw = (t) => {
-      ctx.clearRect(0, 0, w, h);
-      for (let r = 0; r < ROWS; r++) {
-        const z = r / (ROWS - 1);                 // 0 = horizon, 1 = nearest row
-        const persp = 0.28 + z * z * 0.9;          // rows spread as they approach
-        for (let c = 0; c < COLS; c++) {
-          const u = c / (COLS - 1) - 0.5;
-          const swell = Math.sin(u * 7 + t * 0.00055 + z * 5) * 0.6
-                      + Math.sin(u * 13 - t * 0.0009 + z * 9) * 0.25
-                      + Math.cos(z * 7 - t * 0.0007) * 0.35;
-          let x = w / 2 + u * w * 1.35 * persp;
-          let y = h * 0.1 + Math.pow(z, 1.35) * h * 0.86 - swell * 16 * persp;
-          const dx = x - pointer.x, dy = y - pointer.y;
-          const near = Math.exp(-(dx * dx + dy * dy) / 9000);   // ripple around the cursor
-          y -= near * 22 * persp;
-          const size = 0.5 + z * 1.7 + near * 1.4;
-          const crest = clamp((swell + 1.2) / 2.4, 0, 1);
-          const alpha = (0.08 + z * 0.5) * (0.55 + crest * 0.45);
-          // Troughs in lagoon teal, crests warming to champagne gold (deeper tones on the light map section).
-          const cr = light ? Math.round(31 + crest * 153) : Math.round(90 + crest * 150);
-          const cg = light ? Math.round(140 - crest * 10) : Math.round(200 - crest * 20);
-          const cb = light ? Math.round(135 - crest * 88) : Math.round(200 - crest * 90);
-          ctx.fillStyle = `rgba(${cr},${cg},${cb},${alpha.toFixed(3)})`;
-          ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.fill();
-        }
-      }
-    };
-    resize();
-    window.addEventListener("resize", resize);
-    return { canvas, draw };
-  }
-
-  function startWave() {
-    const wave = makeWave();
-    if (!wave) return;
-    let running = false, raf = null;
-    const loop = (t) => { wave.draw(t); raf = requestAnimationFrame(loop); };
-    new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !running) { running = true; raf = requestAnimationFrame(loop); }
-      else if (!entry.isIntersecting && running) { running = false; cancelAnimationFrame(raf); }
-    }).observe(wave.canvas);
-  }
-
-  function drawWaveOnce() {
-    const wave = makeWave();
-    if (wave) wave.draw(0);
   }
 })();

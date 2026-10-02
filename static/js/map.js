@@ -133,11 +133,13 @@
 
     if (closeBtn) closeBtn.addEventListener("click", closeCard);
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !card.hidden) closeCard();
+      if (e.key === "Escape" && !card.hidden && window.matchMedia("(max-width: 1000px)").matches) closeCard();
     });
 
     // Open the first island by default on wide screens so the module never looks empty.
-    const first = svg && svg.querySelector(".isle-dot");
+    // [data-slug]: the unlabelled extra islands (Saba, Guadeloupe...) share the
+    // .isle-dot class, render first, and have no destination data.
+    const first = svg && svg.querySelector(".isle-dot[data-slug]");
     if (first && window.matchMedia("(min-width: 1001px)").matches) openIsland(first.dataset.slug);
   }
 
