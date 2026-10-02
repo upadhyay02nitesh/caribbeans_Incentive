@@ -26,15 +26,13 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from html import escape
 
 from flask import current_app, request
 
 from services.runtime import run_background
 from services.visitors import lead_context
-
-from content.admin_mock import BUDGET_MIDPOINTS
 
 logger = logging.getLogger(__name__)
 
@@ -157,8 +155,45 @@ def _attach(token, opportunity_id, attachment):
         raise SellsyError(f"file upload -> {e.code}: {e.read().decode(errors='replace')[:300]}") from None
 
 
+# Client mapping (Oct 2026): only RFPs become pipeline deals (with the document);
+# briefs and callback requests become actions, i.e. Sellsy tasks for the team.
+TASK_ACTIONS = {
+    # kind: (title verb, hours until due)
+    "brief": ("Schedule meeting", 24),      # the site promises a reply within 24 hours
+    "callback": ("Call back", 4),
+}
+
+
+def _create_task(token, config, kind, payload, person, company_name, company_id, owner_id):
+    """A to-do for the team, linked to the company (Sellsy tasks can't link a contact;
+    the person's details are in the title and note). Returns the task id."""
+    verb, hours = TASK_ACTIONS[kind]
+    title = f"🌐 {verb}: {person or company_name}"
+    if person and company_name != person:
+        title += f" ({company_name})"
+    if kind == "brief":
+        detail = ", ".join(str(p) for p in (payload.get("request_type"),
+                                            f"{payload['group_size']} pax" if payload.get("group_size") else None) if p)
+        if detail:
+            title += f" · {detail}"
+    elif payload.get("phone"):
+        title += f" · {payload['phone']}"
+    due = (datetime.now(timezone.utc) + timedelta(hours=hours)).replace(microsecond=0).isoformat()
+    body = {
+        "title": title[:250],
+        "description": _note(kind, payload.get("reference"), payload.get("fields", []), payload.get("website")),
+        "due_date": due,
+        "label_id": int(config.get("SELLSY_TASK_LABEL_ID") or 11),
+        "related": [{"type": "company", "id": company_id}],
+    }
+    if owner_id:
+        body["assigned_staff_ids"] = [owner_id]
+    return _call(token, "POST", "/tasks", body).get("id")
+
+
 def _push(config, kind, payload, attachment=None):
-    """Company -> contact -> opportunity (-> attached file). Returns the opportunity id."""
+    """Company -> contact, then an RFP deal (with its file) or a task for briefs/callbacks.
+    Returns (record type, id)."""
     token = _access_token(config["SELLSY_CLIENT_ID"], config["SELLSY_CLIENT_SECRET"])
     person = payload.get("contact_name") or payload.get("name")
     company_name = (payload.get("company") or "").strip() or person or "Website enquiry"
@@ -169,13 +204,11 @@ def _push(config, kind, payload, attachment=None):
     contact_id = _find_or_create_contact(token, person, payload.get("email"), payload.get("phone"), company_id,
                                          owner_id)
 
-    # 🌐 marks website leads at a glance in the pipeline (Sellsy names here already use emoji).
-    if kind == "brief":
-        title = f"🌐 {company_name} — {payload.get('request_type') or 'Event brief'}"
-        if payload.get("group_size"):
-            title += f" ({payload['group_size']} pax)"
-    else:
-        title = f"🌐 {company_name} — {KIND_TITLES[kind]}"
+    if kind in TASK_ACTIONS:
+        return "task", _create_task(token, config, kind, payload, person, company_name, company_id, owner_id)
+
+    # RFP: a pipeline deal; 🌐 marks website leads at a glance (Sellsy names here already use emoji).
+    title = f"🌐 {company_name} — {KIND_TITLES[kind]}"
     body = {
         "name": title,
         "pipeline": int(config["SELLSY_PIPELINE_ID"]),
@@ -187,8 +220,6 @@ def _push(config, kind, payload, attachment=None):
     }
     if owner_id:
         body.update({"owner_id": owner_id, "assigned_staff_ids": [owner_id]})
-    if kind == "brief":
-        body["amount"] = str(BUDGET_MIDPOINTS.get(payload.get("budget"), 0))
     opportunity_id = _call(token, "POST", "/opportunities", body).get("id")
 
     if opportunity_id:
@@ -202,7 +233,7 @@ def _push(config, kind, payload, attachment=None):
             _attach(token, opportunity_id, attachment)
         except SellsyError as e:  # the note still names the file — don't fail the lead over the upload
             logger.warning("Sellsy: could not attach %s to opportunity %s: %s", attachment[0], opportunity_id, e)
-    return opportunity_id
+    return "opportunity", opportunity_id
 
 
 # ---------------------------------------------------------------------------
@@ -229,13 +260,14 @@ def send_to_sellsy(kind, reference, fields, attachment=None, channel="Let's Conn
         return True
 
     settings = {k: config.get(k) for k in ("SELLSY_CLIENT_ID", "SELLSY_CLIENT_SECRET", "SELLSY_PIPELINE_ID",
-                                          "SELLSY_STEP_ID", "SELLSY_SOURCE_ID", "SELLSY_OWNER_ID")}
+                                          "SELLSY_STEP_ID", "SELLSY_SOURCE_ID", "SELLSY_OWNER_ID",
+                                          "SELLSY_TASK_LABEL_ID")}
     instance_path = current_app.instance_path
 
     def work():
         try:
-            opportunity_id = _push(settings, kind, payload, attachment)
-            logger.info("Sellsy opportunity %s created for %s %s", opportunity_id, kind, reference)
+            record, record_id = _push(settings, kind, payload, attachment)
+            logger.info("Sellsy %s %s created for %s %s", record, record_id, kind, reference)
         except Exception as e:
             logger.exception("Sellsy push failed for %s %s — archived locally.", kind, reference)
             _append_jsonl(instance_path, kind, payload, f"Sellsy push failed: {e}")

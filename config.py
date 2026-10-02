@@ -27,6 +27,8 @@ class Config:
     SELLSY_PIPELINE_ID = os.environ.get("SELLSY_PIPELINE_ID", "34")
     SELLSY_STEP_ID = os.environ.get("SELLSY_STEP_ID", "34")
     SELLSY_SOURCE_ID = os.environ.get("SELLSY_SOURCE_ID", "6")
+    # Label on the tasks created for briefs and callbacks ("Aucun" in account 207533).
+    SELLSY_TASK_LABEL_ID = os.environ.get("SELLSY_TASK_LABEL_ID", "11")
     # Sellsy staff id that owns (and is assigned) new website leads. Blank = the API key's user.
     SELLSY_OWNER_ID = os.environ.get("SELLSY_OWNER_ID", "")
 
