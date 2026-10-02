@@ -58,7 +58,9 @@ class Config:
     WHATSAPP_API_VERSION = os.environ.get("WHATSAPP_API_VERSION", "v21.0")
 
     # Postgres (Supabase) — either DATABASE_URL, or the four parts below.
-    DATABASE_URL = os.environ.get("DATABASE_URL", "")
+    # Stripped: a trailing space/newline from pasting into a dashboard ends up in
+    # the database name ("postgres ") and the connection fails.
+    DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
     if not DATABASE_URL and os.environ.get("PGHOST") and os.environ.get("PGPASSWORD"):
         DATABASE_URL = (
             f"postgresql://{os.environ.get('PGUSER', 'postgres')}:"
