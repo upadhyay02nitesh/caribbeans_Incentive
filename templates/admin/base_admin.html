@@ -96,6 +96,11 @@
       </header>
 
       <div class="admin-content">
+        {% if db_error %}
+          <div class="admin-flash-stack">
+            <div class="admin-flash admin-flash--danger" role="alert"><i class="bi bi-exclamation-circle"></i> Database unavailable, figures below are not real. {{ db_error }}</div>
+          </div>
+        {% endif %}
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             <div class="admin-flash-stack">

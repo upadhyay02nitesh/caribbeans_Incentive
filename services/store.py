@@ -343,13 +343,25 @@ def _ensure_all_schemas(cur):
     visitors._ensure_schema(cur)
 
 
+_last_read_error = None
+
+
+def last_read_error():
+    """Why the most recent admin read came back empty, or None if it succeeded."""
+    return _last_read_error
+
+
 def query_batch(queries):
     """Run {name: (sql, params)} SELECTs in one round trip -> {name: [row dicts]}.
 
     Returns empty lists for every name when the database is unavailable.
     """
+    global _last_read_error
     empty = {name: [] for name in queries}
-    if not queries or not _dsn():
+    if not queries:
+        return empty
+    if not _dsn():
+        _last_read_error = "DATABASE_URL is not set on this deployment."
         return empty
     parts, params = [], []
     for name, (sql, args) in queries.items():
@@ -366,9 +378,12 @@ def query_batch(queries):
                     result = cur.fetchone()[0]
             finally:
                 conn.autocommit = False
-    except Exception:
+    except Exception as e:
         logger.exception("Batched admin read failed.")
+        # psycopg2 messages name the host/user/port but never the password.
+        _last_read_error = f"{type(e).__name__}: {str(e).strip()[:300]}"
         return empty
+    _last_read_error = None
     for rows in result.values():
         for row in rows:
             for key in _TS_KEYS & row.keys():

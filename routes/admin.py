@@ -14,7 +14,7 @@ from services import analytics, sellsy, visitors as live_visitors
 from services.storage import signed_url
 from services.store import (STATUSES, brief_value_query, counts_from, counts_query, find_inquiry,
                             inquiries_count_query, inquiries_page_query, inquiry_status_counts_query, inquiries_query,
-                            query_batch, shape_briefs, shape_inquiries, update_status)
+                            last_read_error, query_batch, shape_briefs, shape_inquiries, update_status)
 from forms import AdminLoginForm
 
 admin = Blueprint("admin", __name__, url_prefix="/admin")
@@ -153,6 +153,7 @@ def inject_admin():
     # tax on everything else.
     counts = g.get("nav_counts", {})
     return {
+        "db_error": last_read_error() if session.get("admin_logged_in") else None,
         "admin_user": session.get("admin_username", "admin"),
         "greeting": "Good morning" if hour < 12 else "Good afternoon" if hour < 18 else "Good evening",
         "csrf_token": _csrf_token,
