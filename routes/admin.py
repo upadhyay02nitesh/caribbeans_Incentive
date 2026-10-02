@@ -6,13 +6,15 @@ from functools import wraps
 
 import hmac
 import secrets
+from io import BytesIO
 
-from flask import Blueprint, abort, current_app, flash, g, redirect, render_template, request, session, url_for
+from flask import (Blueprint, abort, current_app, flash, g, redirect, render_template, request, send_file, session,
+                   url_for)
 
 from content import admin_mock
-from services import analytics, sellsy, visitors as live_visitors
+from services import analytics, report, sellsy, visitors as live_visitors
 from services.storage import signed_url
-from services.store import (STATUSES, brief_value_query, counts_from, counts_query, find_inquiry,
+from services.store import (AST, STATUSES, brief_value_query, counts_from, counts_query, find_inquiry,
                             inquiries_count_query, inquiries_page_query, inquiry_status_counts_query, inquiries_query,
                             last_read_error, query_batch, shape_briefs, shape_inquiries, update_status)
 from forms import AdminLoginForm
@@ -276,6 +278,30 @@ def dashboard():
         sellsy_data=sellsy_data, sellsy_error=sellsy_error,
         active_nav="dashboard",
     )
+
+
+@admin.route("/export.xlsx")
+@login_required
+def export_report():
+    """Branded Excel workbook of everything on the dashboard, one round trip."""
+    data = _load(brief_rows=inquiries_query("brief", 5000), rfp_rows=inquiries_query("rfp", 5000),
+                 callback_rows=inquiries_query("callback", 5000),
+                 visitor_rows=live_visitors.visitors_query(5000), **analytics.queries())
+    brief_list = shape_briefs(data["brief_rows"])
+    visitor_list = live_visitors.shape_visitors(data["visitor_rows"])
+    live = analytics.build(brief_list, visitor_list, data)
+    sellsy_data, _age, _error = sellsy.pipeline_snapshot()
+    xlsx = report.build_workbook({
+        **live,
+        "briefs": brief_list,
+        "rfps": shape_inquiries(data["rfp_rows"]),
+        "callbacks": shape_inquiries(data["callback_rows"]),
+        "visitors": visitor_list,
+        "sellsy": sellsy_data,
+    })
+    return send_file(BytesIO(xlsx), as_attachment=True,
+                     download_name=f"caribbean-incentive-report-{datetime.now(AST):%Y-%m-%d}.xlsx",
+                     mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
 @admin.route("/visitors")

@@ -20,6 +20,7 @@
     </div>
   </div>
   <div class="admin-header__actions">
+    <a href="{{ url_for('admin.export_report') }}" class="btn" download><i class="bi bi-file-earmark-spreadsheet"></i> Export report</a>
     <a href="{{ url_for('admin.analytics') }}" class="btn"><i class="bi bi-activity"></i> Analytics</a>
     <a href="{{ url_for('admin.briefs') }}" class="btn btn--gold"><i class="bi bi-envelope-paper"></i> Review briefs</a>
   </div>
