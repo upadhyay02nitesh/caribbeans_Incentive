@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% from "partials/section_head.html" import page_hero, section_head %}
+{% block title %}Designed Around You · {{ brand }}{% endblock %}
+{% block body_class %}page-services{% endblock %}
+
+{% block content %}
+{{ page_hero('island.barbados.the-island', content.kicker, content.h3, index='II') }}
+
+<section class="opening">
+  <div class="shell opening__inner">
+    <p class="opening__lead" data-reveal><span class="opening__eyebrow">{{ content.full_h2 }}</span> {{ content.full_paragraphs[0]|lead(2) }}</p>
+  </div>
+</section>
+
+<section class="services">
+  <div class="shell">
+    {% set service_images = ['experience.the-art-of-execution.1', 'experience.quiet-island-moments.2'] %}
+    {% for name, items in service_categories %}
+      {% set outer = loop %}
+      <article class="service-cat {{ 'service-cat--flip' if loop.index is even }}">
+        <div class="service-cat__media">
+          <figure class="frame frame--landscape" data-clip>
+            <img src="{{ img(service_images[loop.index0]) }}" alt="{{ name }}" loading="lazy" width="1400" height="933" data-parallax="8">
+          </figure>
+        </div>
+        <div class="service-cat__body">
+          <div class="section-head">
+            <div class="section-head__meta" data-reveal>
+              <span class="section-head__index">{{ '%02d' % loop.index }}</span>
+              <span class="eyebrow">Service line</span>
+            </div>
+            <h2 class="display-2" data-split>{{ name }}</h2>
+          </div>
+          <ol class="service-list">
+            {% for item in items %}
+              <li class="service-list__item" data-reveal style="--rd: {{ loop.index0 * 0.04 }}s">
+                <span class="service-list__num">{{ outer.index }}.{{ loop.index }}</span>
+                <span class="service-list__name">{{ item }}</span>
+              </li>
+            {% endfor %}
+          </ol>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="hjourney hjourney--light" data-hjourney data-carousel>
+  <div class="hjourney__pin hjourney__pin--free">
+    <div class="shell hjourney__head">
+      {{ section_head(journey_section.kicker, journey_section.h2, index='03') }}
+    </div>
+    <div class="hjourney__viewport" data-carousel-viewport>
+      <ol class="hjourney__track">
+        {% for num, title, desc in journey %}
+          <li class="hjourney__step">
+            <span class="hjourney__num">{{ num }}</span>
+            <span class="hjourney__dot" aria-hidden="true"></span>
+            <h3 class="hjourney__title">{{ title }}</h3>
+            <p class="hjourney__desc">{{ desc }}</p>
+          </li>
+        {% endfor %}
+      </ol>
+    </div>
+    <div class="shell islands-rail__controls">
+      <button type="button" class="rail-arrow" data-carousel-prev aria-label="Previous services">←</button>
+      <button type="button" class="rail-arrow" data-carousel-next aria-label="Next services">→</button>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

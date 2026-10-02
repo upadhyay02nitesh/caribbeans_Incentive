@@ -1,0 +1,371 @@
+/* ===========================================================================
+   Caribbean Incentive — brand.css
+   Design tokens + type + Bootstrap overrides.
+   If a reviewer can tell it's Bootstrap by looking, it's not done.
+   =========================================================================== */
+
+:root {
+  /* ground */
+  --paper: #FBF8F3;
+  --paper-dim: #F1EBDD;
+  --wash: #E8F2EF;
+  --white: #FFFFFF;
+
+  /* dark ground */
+  --ink: #0D2B2E;
+  --ink-soft: #123A3D;
+
+  /* type */
+  --text: #16241F;
+  --muted: #66766D;
+  --line: #DDD4C0;
+
+  /* accents */
+  --reef: #2E8C82;
+  --reef-dark: #1E5F58;
+  --gold: #C08A3E;
+  --gold-bright: #D9A860;
+  --coral: #E2704A;
+
+  /* layout */
+  --content-max: 1220px;
+  --gutter: 32px;
+
+  /* motion */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* fixed nav height (matches .site-nav.is-scrolled) — used to offset sticky elements below it */
+  --nav-h: 64px;
+}
+@media (max-width: 767px) {
+  :root { --nav-h: 58px; }
+}
+
+@media (max-width: 900px) {
+  :root { --gutter: 24px; }
+}
+@media (max-width: 480px) {
+  :root { --gutter: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Base / reset
+   --------------------------------------------------------------------------- */
+html { scroll-behavior: smooth; }
+html, body { overflow-x: hidden; max-width: 100%; }
+
+img, video, iframe { max-width: 100%; height: auto; }
+
+/* Bootstrap's .row carries a negative outer margin meant to be cancelled by
+   Bootstrap's own .container padding. container-brand is a custom container
+   with its own gutter instead, so neutralize that margin here — otherwise
+   every .row bleeds past the right edge of the page on every breakpoint. */
+.container-brand > .row,
+.container-brand .row {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+html.reveal-init .reveal { opacity: 0; transform: perspective(1200px) translateY(28px) rotateX(6deg); transform-origin: 50% 100%; }
+html.reveal-init .reveal.is-visible { opacity: 1; transform: perspective(1200px) translateY(0) rotateX(0deg); transition: opacity .9s var(--ease), transform .9s var(--ease); }
+
+body {
+  background: var(--paper);
+  color: var(--text);
+  font-family: 'Work Sans', sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .fraunces {
+  font-family: 'Fraunces', serif;
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  line-height: 1.1;
+  margin: 0;
+}
+
+h1 { font-size: clamp(32px, 6vw, 68px); }
+h2 { font-size: clamp(28px, 4vw, 46px); }
+h3 { font-size: clamp(22px, 2.4vw, 28px); }
+
+p { margin: 0 0 1em; }
+a { color: var(--reef); text-decoration: none; transition: color .25s var(--ease); }
+a:hover { color: var(--reef-dark); }
+
+.kicker {
+  display: inline-block;
+  font-family: 'Work Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gold);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.on-dark .kicker,
+.kicker--on-dark { color: var(--gold-bright); }
+
+.lede {
+  font-size: 18px;
+  color: var(--muted);
+  font-weight: 300;
+  max-width: 60ch;
+}
+
+.small, .meta { font-size: 12.5px; }
+
+/* ---------------------------------------------------------------------------
+   Layout
+   --------------------------------------------------------------------------- */
+.container-brand {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+
+.section { padding: 100px 0; }
+.section--tight { padding: 56px 0; }
+.section--vast { padding: 168px 0; }
+.section--editorial { padding: 130px 0; }
+.section-head { padding-top: 104px; padding-bottom: 50px; }
+.section-head .lede { margin-top: 14px; }
+
+@media (max-width: 767px) {
+  .section { padding: 64px 0; }
+  .section--tight { padding: 40px 0; }
+  .section--vast { padding: 88px 0; }
+  .section--editorial { padding: 76px 0; }
+}
+
+/* Oversized editorial numerals — used in place of icon-cards for numbered
+   lists (strengths, service groupings). Purely presentational; the source
+   list stays a plain <ol>/<ul> so screen readers still get numbered items. */
+.editorial-list { list-style: none; margin: 0; padding: 0; }
+.editorial-list__item {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 24px;
+  align-items: baseline;
+  padding: 26px 0;
+  border-top: 1px solid var(--line);
+}
+.editorial-list__item:last-child { border-bottom: 1px solid var(--line); }
+.editorial-list__num {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 34px;
+  color: var(--gold);
+  line-height: 1;
+}
+.on-dark .editorial-list__item { border-color: rgba(251, 248, 243, .15); }
+.on-dark .editorial-list__num { color: var(--gold-bright); }
+@media (max-width: 560px) {
+  .editorial-list__item { grid-template-columns: 44px 1fr; gap: 14px; }
+  .editorial-list__num { font-size: 24px; }
+}
+
+/* Animated-underline inline links for editorial copy blocks. */
+.link-underline {
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1px;
+  transition: background-size .35s var(--ease);
+}
+.link-underline:hover { color: inherit; background-size: 100% 1px; }
+
+.on-dark { background: var(--ink); color: var(--paper); }
+.on-dark h1, .on-dark h2, .on-dark h3 { color: var(--paper); }
+.on-dark p { color: rgba(251, 248, 243, 0.78); }
+.on-dark .muted { color: rgba(251, 248, 243, 0.6); }
+
+.bg-paper-dim { background: var(--paper-dim); }
+.bg-wash { background: var(--wash); }
+
+.hairline { border: none; border-top: 1px solid var(--line); margin: 0; }
+.on-dark .hairline { border-top-color: rgba(251, 248, 243, 0.18); }
+
+/* ---------------------------------------------------------------------------
+   Buttons — override Bootstrap completely
+   --------------------------------------------------------------------------- */
+.btn { border-radius: 2px; box-shadow: none !important; }
+
+.btn-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--gold);
+  color: var(--ink);
+  padding: 15px 26px;
+  border: none;
+  border-radius: 2px;
+  font-family: 'Work Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .25s var(--ease), transform .25s var(--ease), box-shadow .25s var(--ease);
+}
+.btn-brand:hover { background: var(--gold-bright); color: var(--ink); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(192, 138, 62, .2); }
+.btn-brand:active { transform: translateY(0); box-shadow: none; }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--paper);
+  border: 1px solid rgba(250, 246, 236, .55);
+  padding: 14px 25px;
+  border-radius: 2px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: border-color .25s var(--ease), background .25s var(--ease);
+}
+.btn-ghost:hover { border-color: var(--paper); background: rgba(250, 246, 236, .08); color: var(--paper); }
+
+.btn-ghost-dark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+  padding: 14px 25px;
+  border-radius: 2px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: border-color .25s var(--ease), background .25s var(--ease);
+}
+.btn-ghost-dark:hover { border-color: var(--text); background: rgba(22, 36, 31, .04); }
+
+/* ---------------------------------------------------------------------------
+   Forms — override Bootstrap completely
+   --------------------------------------------------------------------------- */
+.form-control, .form-select {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 13px 16px;
+  font-family: 'Work Sans', sans-serif;
+  font-size: 14.5px;
+  color: var(--text);
+  box-shadow: none;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--reef);
+  box-shadow: 0 0 0 3px rgba(46, 140, 130, .15);
+  outline: none;
+}
+.form-control.is-invalid, .form-select.is-invalid {
+  border-color: var(--coral);
+}
+.invalid-feedback { color: var(--coral); font-size: 12.5px; }
+.form-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.form-check-input {
+  border-color: var(--line);
+  border-radius: 2px;
+}
+.form-check-input:checked {
+  background-color: var(--gold);
+  border-color: var(--gold);
+}
+.form-check-input:focus { box-shadow: 0 0 0 3px rgba(192, 138, 62, .2); }
+.form-check { padding: 8px 0; }
+.form-check-label { padding: 4px 0; cursor: pointer; }
+
+/* ---------------------------------------------------------------------------
+   Accordion — override Bootstrap completely
+   --------------------------------------------------------------------------- */
+.accordion-item {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--line);
+}
+.accordion-button {
+  background: transparent;
+  color: var(--text);
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 19px;
+  padding: 22px 0;
+  box-shadow: none !important;
+}
+.accordion-button:not(.collapsed) { background: transparent; color: var(--text); }
+.accordion-button::after { filter: none; }
+.accordion-body { padding: 0 0 22px; color: var(--muted); }
+
+/* ---------------------------------------------------------------------------
+   Nav tabs / pills — override Bootstrap completely
+   --------------------------------------------------------------------------- */
+.nav-tabs, .nav-pills { border: none; gap: 8px; }
+.nav-tabs .nav-link, .nav-pills .nav-link {
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--text);
+  font-size: 14px;
+  padding: 10px 20px;
+  background: transparent;
+}
+.nav-tabs .nav-link.active, .nav-pills .nav-link.active {
+  background: var(--ink);
+  color: var(--white);
+  border-color: var(--ink);
+}
+
+/* ---------------------------------------------------------------------------
+   Focus rings — no Bootstrap blue anywhere
+   --------------------------------------------------------------------------- */
+:focus-visible {
+  outline: 3px solid var(--reef);
+  outline-offset: 2px;
+}
+.on-dark :focus-visible {
+  outline-color: var(--gold-bright);
+}
+
+/* ---------------------------------------------------------------------------
+   Skip link — hidden until keyboard-focused
+   --------------------------------------------------------------------------- */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  z-index: 2000;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 12px 20px;
+  border-radius: 2px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: top .2s var(--ease);
+}
+.skip-link:focus {
+  top: 16px;
+  color: var(--paper);
+}

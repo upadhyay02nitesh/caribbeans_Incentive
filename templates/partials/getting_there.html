@@ -1,0 +1,77 @@
+{# MODULE 2b — Getting to your island.
+   Direct, nonstop scheduled flights only (content/islands.py DIRECT_FLIGHTS).
+   One dropdown per island: closed it reads "Direct Flights", open it lists the
+   departure cities and nonstop times. Selecting a city highlights that route on
+   the diagram (static/js/map.js builds it from #airlift-data). #}
+<section class="access" id="getting-there">
+  <div class="shell">
+    <div class="access__head">
+      <div class="section-head">
+        <div class="section-head__meta" data-reveal>
+          <span class="section-head__index">02</span>
+          <span class="eyebrow">GETTING TO YOUR ISLAND</span>
+        </div>
+        <h2 class="display-2" data-split>From the Americas to our shores</h2>
+      </div>
+    </div>
+
+    <div class="access__grid">
+      <div class="access__list">
+        <div class="access-acc" id="gettingThereAccordion" data-accordion>
+          {% for island in direct_flights %}
+            <div class="access-acc__item" data-slug="{{ island.slug }}" data-name="{{ island.name }}" data-reveal>
+              <h3 class="access-acc__heading">
+                <button class="access-acc__btn" type="button" aria-expanded="false" aria-controls="row{{ loop.index }}" id="row{{ loop.index }}-btn">
+                  <span class="access-acc__num">{{ '%02d' % loop.index }}</span>
+                  <span class="access-acc__name">{{ island.name }}</span>
+                  <span class="access-acc__mode">{{ airlift_label }}</span>
+                  <span class="access-acc__icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div id="row{{ loop.index }}" class="access-acc__panel" role="region" aria-labelledby="row{{ loop.index }}-btn" hidden>
+                <div class="access-acc__inner">
+                  <div class="airlift" role="group" aria-label="Direct flights to {{ island.name }}">
+                    {% for city, time, seasonal in island.routes %}
+                      <button type="button" class="airlift__route" data-slug="{{ island.slug }}" data-city="{{ city }}" style="--i: {{ loop.index0 }}">
+                        <svg class="airlift__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2.5 2v1.5l4-1 4 1V21l-2.5-2v-5.5Z"/></svg>
+                        <span class="airlift__text">
+                          <span class="airlift__city">{{ city }}</span>
+                          <span class="airlift__time">{{ time }}{% if seasonal %} <em class="airlift__seasonal">{{ airlift_seasonal }}</em>{% endif %}</span>
+                        </span>
+                      </button>
+                    {% endfor %}
+                  </div>
+                  {% if island.boat %}
+                    <p class="airlift__boat">
+                      <span aria-hidden="true">⛵</span>
+                      Boat from {{ island.boat[0] }}: <strong>{{ island.boat[1] }}</strong>
+                    </p>
+                  {% endif %}
+                  {% if island.note %}
+                    <p class="airlift__note">{{ island.note }}</p>
+                  {% endif %}
+                  {% if island.slug %}
+                    <a href="{{ url_for('main.island_detail', slug=island.slug) }}" class="link-arrow">Explore destination <span aria-hidden="true">→</span></a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="access__diagram">
+        <div class="access__sticky">
+          <svg viewBox="0 0 460 560" class="route-svg" id="route-diagram" role="img" aria-label="Direct flight routes">
+            <text x="230" y="280" text-anchor="middle" class="route-empty" id="route-empty">Open an island to see its direct routes</text>
+          </svg>
+          <p class="fine-print">{{ disclaimer }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script id="airlift-data" type="application/json">
+{{ airlift_json | safe }}
+</script>

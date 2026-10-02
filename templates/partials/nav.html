@@ -1,0 +1,84 @@
+<header class="site-header" id="site-nav">
+  <div class="site-header__bar">
+    <a href="{{ url_for('main.index') }}" class="wordmark" aria-label="{{ brand }} · home">
+      <img src="{{ img('brand.mark') }}" alt="" class="wordmark__mark" width="34" height="48" loading="eager">
+      <span class="wordmark__text">
+        <span class="wordmark__name">{{ brand }}</span>
+        <span class="wordmark__meta">{{ brand_descriptor }}</span>
+      </span>
+    </a>
+
+    <nav class="site-header__nav" aria-label="Primary">
+      {% for item in nav %}
+        {% set current = request.endpoint == item.endpoint or (item.has_dropdown and request.endpoint == 'main.island_detail') %}
+        {% if item.has_dropdown %}
+          <div class="nav-item nav-item--has-drop" data-nav-drop>
+            <a href="{{ url_for(item.endpoint) }}" class="nav-item__link {{ 'is-current' if current }}" aria-expanded="false" aria-controls="nav-drop-islands" data-nav-drop-trigger><span class="nav-item__long">{{ item.label }}</span><span class="nav-item__short">{{ item.short or item.label }}</span></a>
+            <div class="nav-drop" id="nav-drop-islands">
+              <ul>
+                {% for isle in nav_islands %}
+                  <li><a href="{{ url_for('main.island_detail', slug=isle.slug) }}" class="nav-drop__link {{ 'is-current' if request.view_args and request.view_args.get('slug') == isle.slug }}">{{ isle.name }}</a></li>
+                {% endfor %}
+                <li><a href="{{ url_for('main.islands_index') }}" class="nav-drop__link nav-drop__link--all">All destinations</a></li>
+              </ul>
+            </div>
+          </div>
+        {% else %}
+          <a href="{{ url_for(item.endpoint) }}" class="nav-item__link {{ 'is-current' if current }}"><span class="nav-item__long">{{ item.label }}</span><span class="nav-item__short">{{ item.short or item.label }}</span></a>
+        {% endif %}
+      {% endfor %}
+    </nav>
+
+    <div class="site-header__actions">
+      <a href="{{ url_for(nav_cta.endpoint) }}" class="btn btn--gold btn--sm site-header__cta" data-magnetic>
+        <span class="btn__label">{{ nav_cta.label }}</span>
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu" id="menu-toggle">
+        <span class="menu-toggle__text"><span data-closed>Menu</span><span data-open>Close</span></span>
+        <span class="menu-toggle__icon" aria-hidden="true"><span></span><span></span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="site-menu" id="site-menu" role="dialog" aria-modal="true" aria-label="Site menu" hidden>
+  <div class="site-menu__bg" aria-hidden="true">
+    {% for item in nav %}
+      <div class="site-menu__img {{ 'is-active' if loop.first }}" data-menu-img="{{ loop.index0 }}" style="background-image: url('{{ img(item.image) }}');"></div>
+    {% endfor %}
+  </div>
+
+  <div class="site-menu__grid">
+    <ol class="site-menu__list">
+      {% for item in nav %}
+        <li style="--i: {{ loop.index0 }}">
+          <a href="{{ url_for(item.endpoint) }}" class="site-menu__link {{ 'is-current' if request.endpoint == item.endpoint }}" data-menu-index="{{ loop.index0 }}">
+            <span class="site-menu__num">{{ '%02d' % loop.index }}</span>
+            <span class="site-menu__title">{{ item.title }}</span>
+          </a>
+        </li>
+      {% endfor %}
+    </ol>
+
+    <aside class="site-menu__aside">
+      <div class="site-menu__block">
+        <span class="eyebrow eyebrow--light">Our Islands</span>
+        <ul class="site-menu__islands">
+          {% for isle in nav_islands %}
+            <li><a href="{{ url_for('main.island_detail', slug=isle.slug) }}" class="link-line">{{ isle.name }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="site-menu__block">
+        <span class="eyebrow eyebrow--light">Enquiries</span>
+        <a href="mailto:{{ contact.email }}" class="site-menu__mail link-line">{{ contact.email }}</a>
+      </div>
+      <a href="{{ url_for(nav_cta.endpoint) }}" class="btn btn--gold site-menu__cta"><span class="btn__label">{{ nav_cta.label }}</span></a>
+    </aside>
+  </div>
+
+  <div class="site-menu__foot">
+    <span>{{ tagline }}</span>
+    <span>{{ domain }}</span>
+  </div>
+</div>

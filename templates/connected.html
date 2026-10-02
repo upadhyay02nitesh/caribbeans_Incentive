@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "partials/section_head.html" import page_hero %}
+{% block title %}Connected to the Caribbean · {{ brand }}{% endblock %}
+{% block body_class %}page-connected{% endblock %}
+
+{% block content %}
+{{ page_hero('island.british-virgin-islands.hero', 'CONNECTED TO THE CARIBBEAN', 'Effortless connections\nacross the region', index='III') }}
+
+<section class="facts facts--light" aria-label="Access at a glance">
+  <div class="shell facts__grid">
+    {% for f in facts %}
+      <div class="fact" data-reveal style="--rd: {{ loop.index0 * 0.08 }}s">
+        <span class="fact__value" data-count="{{ f.value }}">{{ '%02d' % f.value }}</span>
+        <span class="fact__label">{{ f.label }}</span>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+{% include "partials/map_region.html" %}
+{% include "partials/getting_there.html" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/map.js') }}" defer></script>
+{% endblock %}

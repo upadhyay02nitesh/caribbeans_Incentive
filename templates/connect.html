@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% block title %}Let's Connect · {{ brand }}{% endblock %}
+{% block body_class %}page-connect{% endblock %}
+{% macro field(f, wide=False) %}
+<div class="field {{ 'field--wide' if wide }} {{ 'has-error' if f.errors }}">
+  {{ f(class_='field__input', placeholder=' ', **kwargs) }}
+  {{ f.label(class_='field__label') }}
+  <span class="field__line" aria-hidden="true"></span>
+  {% if f.errors %}<span class="field__error">{{ f.errors[0] }}</span>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro select_field(f) %}
+<div class="field field--select {{ 'has-error' if f.errors }}">
+  {{ f.label(class_='field__label') }}
+  <div class="select-wrap">{{ f(class_='field__input field-select') }}</div>
+  <span class="field__line" aria-hidden="true"></span>
+</div>
+{% endmacro %}
+
+{% macro success(title, body, steps) %}
+<div class="success-panel" tabindex="-1">
+  <div class="success-panel__icon" aria-hidden="true">
+    <svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M15 27l7 7 15-16"/></svg>
+  </div>
+  <h3 class="display-3">{{ title }}</h3>
+  <p>{{ body }}</p>
+  {% if steps %}
+    <div class="success-panel__next">
+      <p class="eyebrow">What happens next</p>
+      <ol>{% for s in steps %}<li><span>{{ '%02d' % loop.index }}</span>{{ s }}</li>{% endfor %}</ol>
+    </div>
+  {% endif %}
+  <div class="success-panel__foot">
+    <a href="{{ url_for('main.index') }}" class="btn btn--line btn--sm"><span class="btn__label">Return to home</span></a>
+    {% if reference_id %}<p class="success-panel__ref">Reference # <code>{{ reference_id }}</code></p>{% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{% block content %}
+<section class="connect">
+  <div class="connect__intro">
+    <div class="connect__intro-inner">
+      <div class="page-hero__meta hero-rise" style="--d:.2s">
+        <span class="page-hero__index">VIII</span>
+        <span class="eyebrow eyebrow--light">{{ nav_cta.label }}</span>
+      </div>
+      <h1 class="connect__title hero-lines">
+        {% for line in content.h2.replace('. ', '.|').split('|') %}<span class="hero-lines__line"><span style="--d: {{ loop.index0 * 0.1 + 0.3 }}s">{{ line }}</span></span>{% endfor %}
+      </h1>
+      <div class="connect__copy hero-rise" style="--d:.8s">
+        <p>{{ content.paragraphs[0]|lead(2) }}</p>
+      </div>
+
+      <div class="contact-list hero-rise" style="--d:1s">
+        <div class="contact-list__row">
+          <span class="contact-list__label">E-MAIL</span>
+          <a href="mailto:{{ contact.email }}" class="contact-list__value link-line">{{ contact.email }}</a>
+        </div>
+        <div class="contact-list__row">
+          <span class="contact-list__label">CALL US</span>
+          <span class="contact-list__value">{{ contact.phone }}</span>
+        </div>
+        <div class="contact-list__row">
+          <span class="contact-list__label">ADDRESS</span>
+          <span class="contact-list__value">{{ contact.address }}</span>
+        </div>
+      </div>
+
+      {% if contact.partner %}
+        <figure class="partner-card hero-rise" style="--d:1.15s">
+          <span class="partner-card__border" aria-hidden="true"></span>
+          <span class="partner-card__media">
+            <span class="partner-card__glow" aria-hidden="true"></span>
+            <span class="partner-card__frame">
+              <img src="{{ img(contact.partner.image) }}" alt="Your Caribbean Incentive contact" width="1024" height="1024" loading="lazy">
+            </span>
+            <span class="partner-card__badge" aria-hidden="true">
+              <img src="{{ img('brand.mark') }}" alt="" width="26" height="36">
+            </span>
+          </span>
+          <figcaption class="partner-card__text">
+            <span class="partner-card__eyebrow">{{ contact.partner.eyebrow }}</span>
+            <blockquote class="partner-card__line">{{ contact.partner.line }}</blockquote>
+            <span class="partner-card__actions">
+              <a href="mailto:{{ contact.email }}" class="partner-card__btn partner-card__btn--gold">
+                <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M3 6.5h18v11H3z M3 7l9 6.5L21 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Write to us
+              </a>
+              <a href="tel:{{ contact.phone|replace(' ', '') }}" class="partner-card__btn">
+                <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M6.6 3.5h3l1.5 4-2 1.3a11 11 0 0 0 6.1 6.1l1.3-2 4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Call us
+              </a>
+            </span>
+          </figcaption>
+        </figure>
+      {% endif %}
+
+      <a href="{{ url_for('static', filename='docs/caribbean-incentive-brochure.pdf') }}" target="_blank" rel="noopener" class="link-arrow hero-rise" style="--d:1.25s">Brochure <span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+
+  <div class="connect__form">
+    <div class="connect__form-inner">
+      <span class="eyebrow">Get in touch</span>
+      <h2 class="display-2">Share your ambitions</h2>
+      <p class="lede">{{ content.form_intro }}</p>
+
+      <div class="tabs" role="tablist" aria-label="Ways to connect" id="connectTabs">
+        {% for key, label in [('brief', 'Submit an Event Brief'), ('rfp', 'Upload an RFP'), ('call', 'Schedule a Call')] %}
+          <button class="tab {{ 'is-active' if active_tab == key }}" type="button" role="tab" id="tab-{{ key }}-btn" aria-controls="tab-{{ key }}" aria-selected="{{ 'true' if active_tab == key else 'false' }}" tabindex="{{ '0' if active_tab == key else '-1' }}" data-tab="tab-{{ key }}">
+            <span class="tab__num">{{ '%02d' % loop.index }}</span>{{ label }}
+          </button>
+        {% endfor %}
+        <span class="tabs__ink" aria-hidden="true"></span>
+      </div>
+
+      <div class="tab-panels">
+        <div class="tab-pane {{ 'is-active' if active_tab == 'brief' }}" id="tab-brief" role="tabpanel" aria-labelledby="tab-brief-btn" {{ 'hidden' if active_tab != 'brief' }}>
+          {% if brief_success %}
+            {{ success('Got your brief.', "We've received your event details and will be in touch within 24 hours.", ['Our team reviews your requirements', 'We schedule a discovery call', 'You receive a tailored proposal']) }}
+          {% else %}
+            <form method="post" action="{{ url_for('inquiry.brief') }}" class="js-validate form-grid" novalidate>
+              {{ brief_form.hidden_tag() }}
+              <div class="hp" aria-hidden="true">{{ brief_form.website(tabindex='-1', autocomplete='off') }}</div>
+              {{ field(brief_form.company, required=true, autocomplete='organization') }}
+              {{ field(brief_form.contact_name, required=true, autocomplete='name') }}
+              {{ field(brief_form.email, required=true, type='email', autocomplete='email') }}
+              {{ field(brief_form.phone, required=true, type='tel', autocomplete='tel') }}
+              {{ field(brief_form.country, required=true, autocomplete='country-name') }}
+              {{ select_field(brief_form.request_type) }}
+              {{ field(brief_form.group_size, required=true, min=1) }}
+              {{ field(brief_form.preferred_dates, required=true) }}
+              {{ select_field(brief_form.budget) }}
+              {{ field(brief_form.message, wide=True, rows=4) }}
+              <div class="form-grid__foot">
+                <button type="submit" class="btn btn--gold btn--lg" data-magnetic><span class="btn__label">Submit Event Brief</span><span class="btn__arrow" aria-hidden="true">→</span></button>
+              </div>
+            </form>
+          {% endif %}
+        </div>
+
+        <div class="tab-pane {{ 'is-active' if active_tab == 'rfp' }}" id="tab-rfp" role="tabpanel" aria-labelledby="tab-rfp-btn" {{ 'hidden' if active_tab != 'rfp' }}>
+          {% if rfp_success %}
+            {{ success('RFP received.', "Your document has been forwarded to our proposals team. We'll follow up with next steps shortly.", ['Our team reviews your RFP in detail', 'We clarify any open questions with you', 'You receive a formal response ahead of your deadline']) }}
+          {% else %}
+            <form method="post" action="{{ url_for('inquiry.rfp') }}" enctype="multipart/form-data" class="js-validate form-grid" novalidate>
+              {{ rfp_form.hidden_tag() }}
+              <div class="hp" aria-hidden="true">{{ rfp_form.website(tabindex='-1', autocomplete='off') }}</div>
+              {{ field(rfp_form.name, required=true, autocomplete='name') }}
+              {{ field(rfp_form.email, required=true, type='email', autocomplete='email') }}
+              {{ field(rfp_form.company, wide=True, required=true, autocomplete='organization') }}
+              <div class="field field--wide {{ 'has-error' if rfp_form.rfp_file.errors }}">
+                <label class="dropzone" for="{{ rfp_form.rfp_file.id }}">
+                  {{ rfp_form.rfp_file(class_='dropzone__input', accept='.pdf,.doc,.docx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation', required=true) }}
+                  <span class="dropzone__icon" aria-hidden="true">
+                    <svg viewBox="0 0 40 40"><path d="M20 26V8M13 15l7-7 7 7M8 26v6h24v-6"/></svg>
+                  </span>
+                  <span class="dropzone__title" data-dropzone-name>{{ rfp_form.rfp_file.label.text }}</span>
+                  <span class="dropzone__hint">PDF, Word or PowerPoint, max 10 MB. Drop a file or click to browse.</span>
+                </label>
+                {% if rfp_form.rfp_file.errors %}<span class="field__error">{{ rfp_form.rfp_file.errors[0] }}</span>{% endif %}
+              </div>
+              <div class="form-grid__foot">
+                <button type="submit" class="btn btn--gold btn--lg" data-magnetic><span class="btn__label">Upload RFP</span><span class="btn__arrow" aria-hidden="true">→</span></button>
+              </div>
+            </form>
+          {% endif %}
+        </div>
+
+        <div class="tab-pane {{ 'is-active' if active_tab == 'call' }}" id="tab-call" role="tabpanel" aria-labelledby="tab-call-btn" {{ 'hidden' if active_tab != 'call' }}>
+          <div class="call-grid">
+            <div class="call-card">
+              <span class="eyebrow">01 · Book a time</span>
+              {% if teams_booking_url %}
+                {# Microsoft Bookings blocks inline framing (X-Frame-Options) on
+                   this tenant's page, so this opens the real calendar in a new
+                   tab instead of trying to embed it — reliable regardless of
+                   Microsoft's security headers. #}
+                <a href="{{ teams_booking_url }}" target="_blank" rel="noopener" class="call-card__link">
+                  <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="10" width="34" height="31" rx="2"/><path d="M7 19h34M16 6v8M32 6v8"/></svg>
+                  <span class="call-card__link-title">Open the booking calendar</span>
+                  <span class="call-card__link-sub">Choose a time that works for you — opens in a new tab</span>
+                  <span class="btn btn--gold btn--sm"><span class="btn__label">Book a time</span><span class="btn__arrow" aria-hidden="true">→</span></span>
+                </a>
+              {% else %}
+                <div class="call-card__placeholder">
+                  <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="10" width="34" height="31" rx="2"/><path d="M7 19h34M16 6v8M32 6v8"/></svg>
+                  <p>Booking calendar: connect your Microsoft Bookings page</p>
+                </div>
+              {% endif %}
+              {% if whatsapp_number %}
+                <a href="https://wa.me/{{ whatsapp_number }}" class="btn btn--line btn--sm" target="_blank" rel="noopener"><span class="btn__label">Message us on WhatsApp</span></a>
+              {% endif %}
+            </div>
+
+            <div class="call-card">
+              <span class="eyebrow">02 · Request a callback</span>
+              {% if callback_success %}
+                {{ success('Callback requested.', "We've received your request and will reach out shortly to schedule a time.", []) }}
+              {% else %}
+                <form method="post" action="{{ url_for('inquiry.callback') }}" class="js-validate form-grid form-grid--single" novalidate>
+                  {{ callback_form.hidden_tag() }}
+                  <div class="hp" aria-hidden="true">{{ callback_form.website(tabindex='-1', autocomplete='off') }}</div>
+                  {{ field(callback_form.name, required=true, autocomplete='name') }}
+                  {{ field(callback_form.email, required=true, type='email', autocomplete='email') }}
+                  {{ field(callback_form.company, required=true, autocomplete='organization') }}
+                  {{ field(callback_form.phone, type='tel', autocomplete='tel') }}
+                  <div class="form-grid__foot">
+                    <button type="submit" class="btn btn--line"><span class="btn__label">Request a Callback</span><span class="btn__arrow" aria-hidden="true">→</span></button>
+                  </div>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# Office map — keyless Google Maps embed; the office buttons swap the pin. #}
+{% set offices = contact.offices %}
+<section class="offices" id="offices">
+  <div class="shell offices__grid">
+    <div class="offices__side">
+      <span class="eyebrow" data-reveal>Our office{{ 's' if offices|length > 1 }}</span>
+      <h2 class="offices__title" data-reveal>Find us in the Caribbean</h2>
+      <div class="offices__list" role="group" aria-label="Choose an office">
+        {% for o in offices %}
+          {% set src = 'https://maps.google.com/maps?q=' ~ (o.map|urlencode) ~ '&z=13&output=embed' %}
+          <button type="button" class="office" data-map-src="{{ src }}" aria-pressed="{{ 'true' if loop.first else 'false' }}">
+            {% if offices|length > 1 %}<span class="office__num">{{ '%02d' % loop.index }}</span>{% endif %}
+            <span class="office__body">
+              <span class="office__name">{{ o.name }}</span>
+              <span class="office__addr">{{ o.lines|join(', ') }}</span>
+            </span>
+            <span class="office__pin" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="9.5" r="2.4" fill="currentColor"/></svg></span>
+          </button>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="offices__map" data-reveal>
+      <iframe id="office-map" title="Map of our {{ offices[0].name }} office"
+              src="https://maps.google.com/maps?q={{ offices[0].map|urlencode }}&z=13&output=embed"
+              loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/forms.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/offices.js') }}" defer></script>
+{% endblock %}

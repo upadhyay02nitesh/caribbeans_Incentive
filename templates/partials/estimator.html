@@ -1,0 +1,108 @@
+<section class="estimator-section" id="estimator">
+  <div class="shell">
+    <div class="estimator-section__head">
+      <div class="section-head">
+        <div class="section-head__meta" data-reveal>
+          <span class="section-head__index">02</span>
+          <span class="eyebrow">PLANNING ESTIMATE</span>
+        </div>
+        <h2 class="display-2" data-split>{{ envision_content.estimator_subhead }}</h2>
+        <p class="lede" data-reveal>{{ estimator_copy.heading }} {{ estimator_copy.sub }}</p>
+      </div>
+    </div>
+
+    <div class="estimator" data-reveal>
+      <div class="estimator__left">
+        {# Island + tier are picked with the pill/card radios below; the original selects stay
+           (visually hidden) because estimator.js reads them — the radios just drive them. #}
+        <fieldset class="est-field">
+          <legend class="est-label"><span><i class="est-step">1</i>Island</span> <span id="est-island-label" class="est-value"></span></legend>
+          <select class="visually-hidden" id="est-island" tabindex="-1" aria-hidden="true">
+            {% for slug, name, rate in estimator_islands %}
+              <option value="{{ slug }}" data-rate="{{ rate }}" {{ 'selected' if slug == 'saint-martin' }}>{{ name }}</option>
+            {% endfor %}
+          </select>
+          <div class="est-pills" data-drives="est-island">
+            {% for slug, name, rate in estimator_islands %}
+              <label class="est-pill">
+                <input type="radio" name="est-island-pick" value="{{ slug }}" {{ 'checked' if slug == 'saint-martin' }}>
+                <span>{{ name.split(' / ')[0] }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        <div class="est-duo">
+          <div class="est-field">
+            <label class="est-label" for="est-pax"><span><i class="est-step">2</i>Group size</span> <span id="est-pax-label" class="est-value">60 people</span></label>
+            <input type="range" class="range" id="est-pax" min="10" max="300" step="5" value="60">
+            <div class="range-scale" aria-hidden="true"><span>10</span><span>300</span></div>
+          </div>
+
+          <div class="est-field">
+            <label class="est-label" for="est-nights"><span><i class="est-step">3</i>Nights on-island</span> <span id="est-nights-label" class="est-value">4 nights</span></label>
+            <input type="range" class="range" id="est-nights" min="2" max="10" step="1" value="4">
+            <div class="range-scale" aria-hidden="true"><span>2</span><span>10</span></div>
+          </div>
+        </div>
+
+        <fieldset class="est-field">
+          <legend class="est-label"><span><i class="est-step">4</i>Program tier</span></legend>
+          <select class="visually-hidden" id="est-tier" tabindex="-1" aria-hidden="true">
+            {% for key, name, desc, multiplier in tiers %}
+              <option value="{{ key }}" data-multiplier="{{ multiplier }}" {{ 'selected' if key == 'premium' }}>{{ name }}, {{ desc }}</option>
+            {% endfor %}
+          </select>
+          <div class="est-tiers" data-drives="est-tier">
+            {% for key, name, desc, multiplier in tiers %}
+              <label class="est-tier">
+                <input type="radio" name="est-tier-pick" value="{{ key }}" {{ 'checked' if key == 'premium' }}>
+                <span class="est-tier__gem" aria-hidden="true">{% for n in range(loop.index) %}◆{% endfor %}</span>
+                <span class="est-tier__name">{{ name }}</span>
+                <span class="est-tier__desc">{{ desc }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        <fieldset class="est-field est-addons">
+          <legend class="est-label"><span><i class="est-step">5</i>Add to your program</span></legend>
+          <div class="addon-grid">
+            {% for key, label, price in addons %}
+              <label class="addon" for="addon-{{ key }}">
+                <input type="checkbox" id="addon-{{ key }}" data-key="{{ key }}" data-price="{{ price }}" {{ 'checked' if key in ['transfers','boat','gala','decor'] }}>
+                <span class="addon__box" aria-hidden="true"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" /></svg></span>
+                <span class="addon__label">{{ label }}</span>
+                <span class="addon__price">+${{ price }}/pp</span>
+              </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="estimator__right dark">
+        <div class="estimator__glow" aria-hidden="true"></div>
+        <div class="estimator__sticky">
+          <span class="eyebrow eyebrow--light">ESTIMATED PROGRAM TOTAL</span>
+          <div class="estimator__total" id="est-total" aria-live="polite">$0</div>
+          <div class="estimator__pp" id="est-per-person">≈ $0 per person</div>
+
+          <dl class="est-summary" aria-label="Your selection">
+            <div><dt>Island</dt><dd id="est-sum-island">·</dd></div>
+            <div><dt>Group</dt><dd id="est-sum-pax">·</dd></div>
+            <div><dt>Nights</dt><dd id="est-sum-nights">·</dd></div>
+            <div><dt>Tier</dt><dd id="est-sum-tier">·</dd></div>
+            <div><dt>Add-ons</dt><dd id="est-sum-addons">·</dd></div>
+          </dl>
+
+          <p class="estimator__disclaimer">{{ estimator_disclaimer }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script id="estimator-data" type="application/json">
+{{ island_rate_json | safe }}
+</script>
+<script>window.__SERVICE_FEE__ = {{ service_fee }};</script>

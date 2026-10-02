@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "partials/section_head.html" import page_hero %}
+{% block title %}Explore Our Islands · {{ brand }}{% endblock %}
+{% block body_class %}page-islands{% endblock %}
+
+{% block content %}
+{{ page_hero('island.st-barth.hero', 'EXPLORE OUR ISLANDS', explore.h2, index='IV') }}
+
+<section class="atlas">
+  <div class="shell">
+    <nav class="atlas__index" aria-label="Jump to island" data-reveal>
+      <span class="atlas__index-label">{{ '%02d' % islands|length }} islands</span>
+      <ul>
+        {% for isle in islands %}<li><a href="#isle-{{ isle.slug }}" data-scroll-to><sup>{{ '%02d' % loop.index }}</sup>{{ isle.name }}</a></li>{% endfor %}
+      </ul>
+    </nav>
+
+    {% for isle in islands %}
+      <article class="atlas-item {{ 'atlas-item--flip' if loop.index is even }}" id="isle-{{ isle.slug }}">
+        <a href="{{ url_for('main.island_detail', slug=isle.slug) }}" class="atlas-item__media" data-cursor="Discover" aria-label="Discover {{ isle.name }}">
+          <figure class="frame" data-clip>
+            <img src="{{ img('island.' ~ isle.slug ~ '.hero') }}" alt="{{ isle.name }}" loading="lazy" width="1400" height="933" data-parallax="8">
+          </figure>
+        </a>
+        <div class="atlas-item__body">
+          <span class="atlas-item__num" aria-hidden="true">{{ '%02d' % loop.index }}</span>
+          <span class="eyebrow" data-reveal>{{ isle.full_name }}</span>
+          <h2 class="display-2" data-split>{{ isle.name }}</h2>
+          <dl class="atlas-item__facts" data-reveal>
+            <div><dt>Access</dt><dd>{{ isle.access }}</dd></div>
+            <div><dt>Suited to</dt><dd>{{ isle.suited_to }}</dd></div>
+            {% if isle.gateway %}
+              <div><dt>{{ isle.gateway.label }}</dt><dd>{{ isle.gateway.value }}</dd></div>
+            {% endif %}
+          </dl>
+          <a href="{{ url_for('main.island_detail', slug=isle.slug) }}" class="btn btn--line" data-magnetic data-reveal><span class="btn__label">Discover {{ isle.name }}</span><span class="btn__arrow" aria-hidden="true">→</span></a>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+{% endblock %}

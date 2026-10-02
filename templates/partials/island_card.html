@@ -1,0 +1,15 @@
+{% macro island_card(isle, index=None) %}
+<a href="{{ url_for('main.island_detail', slug=isle.slug) }}" class="rail-card" data-cursor="Discover">
+  <div class="rail-card__media">
+    <img src="{{ img('island.' ~ isle.slug ~ '.card') }}" alt="{{ isle.name }}" loading="lazy" width="1400" height="1712">
+  </div>
+  <div class="rail-card__top">
+    {% if index %}<span class="rail-card__num">{{ '%02d' % index }}</span>{% endif %}
+    <span class="rail-card__access">{{ isle.access }}</span>
+  </div>
+  <div class="rail-card__bottom">
+    <h3 class="rail-card__name">{{ isle.name }}</h3>
+    <span class="rail-card__cta">Discover more <span aria-hidden="true">→</span></span>
+  </div>
+</a>
+{% endmacro %}

@@ -1,0 +1,158 @@
+{# Site assistant — messenger-style widget with Home / Messages / Help views.
+   Markup only; behaviour in static/js/chat.js, answers from POST /chat. #}
+{% set chat_topics = [
+  ('Estimate 60 people, 4 nights, Premium', 'Get an instant planning estimate'),
+  ('Which islands do you cover?', 'Our seven destinations'),
+  ('How do we get there?', 'Flights, ferries and hubs'),
+  ('How can I contact you?', 'Talk to the team'),
+] %}
+<div class="chat" id="chat" data-endpoint="{{ url_for('chat.chat_message') }}">
+  <button type="button" class="chat__launcher" id="chat-launcher" aria-expanded="false" aria-controls="chat-panel" aria-label="Open the {{ brand }} assistant">
+    <svg class="chat__icon chat__icon--open" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.2 3.6c-.5.4-1.3.1-1.3-.6V16A2.5 2.5 0 0 1 4 13.5v-8Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <circle cx="8.5" cy="9.5" r="1.1" fill="currentColor"/><circle cx="12" cy="9.5" r="1.1" fill="currentColor"/><circle cx="15.5" cy="9.5" r="1.1" fill="currentColor"/>
+    </svg>
+    <svg class="chat__icon chat__icon--close" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  <section class="chat__panel" id="chat-panel" role="dialog" aria-modal="false" aria-label="{{ brand }} assistant" data-view="home" data-lenis-prevent hidden>
+
+    {# ------------------------------------------------------------ HOME #}
+    <div class="chat__view chat__view--home" data-view-pane="home">
+      <div class="chat__hero">
+        <div class="chat__hero-top">
+          <span class="chat__brand">{{ brand }}</span>
+          <span class="chat__faces" aria-hidden="true">
+            {# the real partner portrait (cut-out PNG, needs its own backdrop) #}
+            <img class="chat__faces-portrait" src="{{ img(contact.partner.image) }}" alt="" width="44" height="44" loading="lazy">
+          </span>
+          <button type="button" class="chat__close" data-chat-close aria-label="Close the assistant">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <p class="chat__hello">Hello <span aria-hidden="true">👋</span></p>
+        <h2 class="chat__greeting">How can we <em>help</em> you today?</h2>
+      </div>
+
+      <div class="chat__cards">
+        <button type="button" class="chat__card chat__card--row" data-go="messages">
+          <span><strong>Send us a message</strong><small>We usually reply in a few seconds</small></span>
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 12 20 4l-6 16-2.5-6.5L4 12Z" fill="currentColor"/></svg>
+        </button>
+
+        <button type="button" class="chat__card chat__card--row" data-mode-start="project">
+          <span><strong>Build my project brief</strong><small>A few questions, then we send it to the team</small></span>
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 4.5h9l5 5V19a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19V6a1.5 1.5 0 0 1 1-1.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 4.5V10H19M8 13.5h6M8 16.5h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
+
+        <form class="chat__card chat__search" data-chat-search>
+          <label class="visually-hidden" for="chat-search-input">Search for help</label>
+          <input id="chat-search-input" type="search" placeholder="Search for help" autocomplete="off">
+          <button type="submit" aria-label="Search"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></button>
+        </form>
+
+        <button type="button" class="chat__card chat__feature" data-ask="{{ chat_topics[0][0] }}">
+          <span class="chat__feature-kicker"><span aria-hidden="true">✦</span> Instant planning estimate</span>
+          <span class="chat__feature-media">
+            <img src="{{ img('itinerary.day4') }}" alt="" loading="lazy" width="600" height="300">
+            <span class="chat__feature-caption">Tell us your group size and nights, get a per-person budget in seconds.</span>
+          </span>
+        </button>
+
+        <div class="chat__card chat__topics">
+          {% for question, hint in chat_topics[1:] %}
+          <button type="button" data-ask="{{ question }}">
+            <span><strong>{{ question }}</strong><small>{{ hint }}</small></span>
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    {# -------------------------------------------------------- MESSAGES #}
+    <div class="chat__view chat__view--messages" data-view-pane="messages" hidden>
+      <header class="chat__head">
+        <button type="button" class="chat__back" data-go="home" aria-label="Back to home">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="m15 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <span class="chat__avatar" aria-hidden="true">CI</span>
+        <div class="chat__heading">
+          <h2 class="chat__title" id="chat-title">{{ brand }}</h2>
+          <p class="chat__sub"><span class="chat__dot" aria-hidden="true"></span>Online · replies instantly</p>
+        </div>
+        <button type="button" class="chat__reset" id="chat-reset" aria-label="Start a new conversation" title="New conversation">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button type="button" class="chat__close chat__close--dark" data-chat-close aria-label="Close the assistant">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+
+      <div class="chat__modes" role="tablist" aria-label="Assistant mode">
+        <button type="button" class="chat__mode is-active" data-mode="ask" role="tab" aria-selected="true">Ask Caraïbes</button>
+        <button type="button" class="chat__mode" data-mode="project" role="tab" aria-selected="false">Project assistant</button>
+      </div>
+
+      <div class="chat__log" id="chat-log" role="log" aria-live="polite" aria-relevant="additions"></div>
+
+      <div class="chat__chips" id="chat-chips">
+        {% for question, hint in chat_topics %}<button type="button" class="chat__chip">{{ question }}</button>{% endfor %}
+      </div>
+
+      <form class="chat__form" id="chat-form" autocomplete="off">
+        <label class="visually-hidden" for="chat-input">Your message</label>
+        <textarea class="chat__input" id="chat-input" rows="1" maxlength="1500" placeholder="Write a message…"></textarea>
+        <button type="submit" class="chat__send" id="chat-send" aria-label="Send message">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 12 20 4l-6 16-2.5-6.5L4 12Z" fill="currentColor"/></svg>
+        </button>
+      </form>
+      <p class="chat__note">Estimates are indicative and exclude airfare.</p>
+    </div>
+
+    {# ------------------------------------------------------------ HELP #}
+    <div class="chat__view chat__view--help" data-view-pane="help" hidden>
+      <header class="chat__plainhead">
+        <h2>Help</h2>
+        <button type="button" class="chat__close chat__close--dark" data-chat-close aria-label="Close the assistant">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+      <div class="chat__helpbody">
+        <p class="chat__helplabel">Popular questions</p>
+        <div class="chat__card chat__topics">
+          {% for question in ['What services do you offer?', 'Which island suits a group of 100?', 'What does a 4-night incentive cost?', 'Can you handle flights and transfers?', 'What is included in a gala dinner?'] %}
+          <button type="button" data-ask="{{ question }}">
+            <span><strong>{{ question }}</strong></span>
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          {% endfor %}
+        </div>
+        <p class="chat__helplabel">Talk to the team</p>
+        <div class="chat__card chat__contact">
+          <a href="mailto:{{ contact.email }}"><span>E-mail</span>{{ contact.email }}</a>
+          <a href="tel:{{ contact.phone|replace(' ', '') }}"><span>Phone</span>{{ contact.phone }}</a>
+          {% for label, window in contact.hours %}<p><span>{{ label }}</span>{{ window }}</p>{% endfor %}
+        </div>
+      </div>
+    </div>
+
+    {# ---------------------------------------------------------- TAB BAR #}
+    <nav class="chat__tabs" aria-label="Assistant sections">
+      <button type="button" data-go="home" aria-current="page">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19v-7.5Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 15.5c1.6 1.3 4.4 1.3 6 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Home
+      </button>
+      <button type="button" data-go="messages">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V17A2.5 2.5 0 0 1 4 14.5v-8Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8.5 9.5h7M8.5 12.5h4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Messages<span class="chat__badge" id="chat-badge" hidden></span>
+      </button>
+      <button type="button" data-go="help">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M9.6 9.6a2.5 2.5 0 1 1 3.3 2.4c-.6.3-.9.8-.9 1.4v.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="16.8" r="1" fill="currentColor"/></svg>
+        Help
+      </button>
+    </nav>
+  </section>
+</div>

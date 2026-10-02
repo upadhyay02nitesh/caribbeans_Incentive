@@ -1,0 +1,18 @@
+venv/
+__pycache__/
+.claude/settings.local.json
+*.pyc
+.env
+.env.vercel
+instance/
+server.log
+*.log
+
+# Loose client-supplied reference files at repo root (not used by the app;
+# PDFs/images/CSVs the app actually serves live under static/ or knowledge/)
+/1000182033-removebg-preview.png
+/IMG-20260202-WA0006.jpg
+/Logo - CI.webp
+/New Website Instructions.pdf
+/Pres Caribbean I  direct client.pdf
+/pricing_for_client.csv

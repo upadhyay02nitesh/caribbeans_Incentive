@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Page Not Found · {{ brand }}{% endblock %}
+{% block body_class %}page-404{% endblock %}
+
+{% block content %}
+<section class="lost dark">
+  <div class="lost__bg" aria-hidden="true"><img src="{{ img('island.british-virgin-islands.the-island') }}" alt="" width="1400" height="933" data-hero-img></div>
+  <div class="lost__shade" aria-hidden="true"></div>
+  <div class="shell lost__content">
+    <span class="lost__code hero-rise" style="--d:.2s" aria-hidden="true">404</span>
+    <span class="eyebrow eyebrow--light hero-rise" style="--d:.3s">Off the map</span>
+    <h1 class="display-1 hero-lines"><span class="hero-lines__line"><span style="--d:.4s">This shore isn't on our map.</span></span></h1>
+    <p class="page-hero__lede hero-rise" style="--d:.6s">The page you're looking for doesn't exist. Let's get you back on course.</p>
+    <div class="hero-rise lost__actions" style="--d:.8s">
+      <a href="{{ url_for('main.index') }}" class="btn btn--gold" data-magnetic><span class="btn__label">Return Home</span><span class="btn__arrow" aria-hidden="true">→</span></a>
+      <a href="{{ url_for('main.islands_index') }}" class="btn btn--line-light"><span class="btn__label">Explore Our Islands</span></a>
+    </div>
+  </div>
+</section>
+{% endblock %}

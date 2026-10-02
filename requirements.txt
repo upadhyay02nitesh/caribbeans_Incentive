@@ -1,0 +1,10 @@
+Flask==3.0.3
+Flask-WTF==1.2.1
+WTForms==3.1.2
+python-dotenv==1.0.1
+email-validator==2.1.1
+psycopg2-binary==2.9.13
+anthropic==1.6.0
+boto3==1.43.97
+langchain-openai==1.6.7
+pypdf==6.1.3

@@ -1,0 +1,67 @@
+{% extends "admin/base_admin.html" %}
+{% from "admin/_status.html" import status_form, alerts with context %}
+{% from "admin/_pager.html" import toolbar, pager with context %}
+{% block title %}{{ title }} {{ title_em }} — Admin — {{ brand }}{% endblock %}
+
+{% block admin_content %}
+<div class="admin-header rise">
+  <div>
+    <span class="eyebrow">{{ eyebrow }}</span>
+    <h1>{{ title }} <em>{{ title_em }}</em></h1>
+    <p class="admin-header__lede">{{ lede }}</p>
+  </div>
+</div>
+
+<section class="panel panel--flush rise" style="--i:2">
+  <div class="panel__head">
+    <div><h2 class="panel__title">All {{ title|lower }} {{ title_em }}</h2><p class="panel__sub">Newest first · live from Supabase</p></div>
+  </div>
+  {{ toolbar(chips, status, q, 'Search company, name, email…', chips_total) }}
+  {% if rows %}
+  <div class="table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Company</th><th>Contact</th>
+          {% if kind == 'rfp' %}<th>Document</th>{% else %}<th>Phone</th>{% endif %}
+          <th>Alerts</th><th>Status</th><th>Submitted</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>
+            <div class="who">
+              <span class="avatar" style="--h:{{ (r.id * 47) % 360 }}">{{ (r.company or '—')|initials }}</span>
+              <div><div class="who__name">{{ r.company or '—' }}</div><div class="who__meta">{{ r.reference }}</div></div>
+            </div>
+          </td>
+          <td>{{ r.name or '—' }}<div class="who__meta"><a href="mailto:{{ r.email }}">{{ r.email }}</a></div></td>
+          {% if kind == 'rfp' %}
+          <td>
+            {% if r.file_path %}
+              <a class="file-link" href="{{ url_for('admin.rfp_download', reference=r.reference) }}" target="_blank" rel="noopener">
+                <i class="bi bi-file-earmark-arrow-down"></i> {{ r.file_name }}
+              </a>
+            {% else %}
+              <span class="muted" title="Received before storage was connected — see the notification email">{{ r.file_name or '—' }}</span>
+            {% endif %}
+            <div class="who__meta">{% if r.file_size %}{{ '%.0f'|format(r.file_size / 1024) }} KB{% endif %}{% if r.file_type %} · {{ r.file_type.split('/')[-1].split('.')[-1][:12] }}{% endif %}</div>
+          </td>
+          {% else %}
+          <td>{% if r.phone %}<a href="tel:{{ r.phone|replace(' ', '') }}">{{ r.phone }}</a>{% else %}<span class="muted">—</span>{% endif %}</td>
+          {% endif %}
+          <td>{{ alerts(r.emailed, r.whatsapped) }}</td>
+          <td>{{ status_form(kind, r.reference, r.status) }}</td>
+          <td class="muted">{{ r.submitted_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty-state">{{ 'Nothing matches this filter.' if (q or status) else "Nothing here yet — submissions from Let's Connect appear here as they arrive." }}</p>
+  {% endif %}
+  {{ pager(p, 'requests' if kind == 'callback' else 'documents') }}
+</section>
+{% endblock %}

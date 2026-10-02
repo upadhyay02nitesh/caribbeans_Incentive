@@ -1,0 +1,47 @@
+{# Shared list controls for every paginated admin table.
+   `p` comes from routes/admin.py _paginate(); links are built with page_url(),
+   which keeps the current status / search / page size and changes one thing. #}
+
+{% macro toolbar(chips, active, q, placeholder='Filter this list…', total=0) -%}
+<div class="toolbar">
+  <div class="filter-chips" role="group" aria-label="Filter by status">
+    <a href="{{ page_url(status=None, page=None) }}" aria-pressed="{{ 'true' if not active else 'false' }}">All <span>{{ total }}</span></a>
+    {% for label, n in chips %}
+      <a href="{{ page_url(status=label, page=None) }}" aria-pressed="{{ 'true' if active == label else 'false' }}">{{ label }} <span>{{ n }}</span></a>
+    {% endfor %}
+  </div>
+  <form class="admin-search" method="get" role="search">
+    <i class="bi bi-funnel" aria-hidden="true"></i>
+    {% if active %}<input type="hidden" name="status" value="{{ active }}">{% endif %}
+    {% if request.args.get('per') %}<input type="hidden" name="per" value="{{ request.args.get('per') }}">{% endif %}
+    <input type="search" name="q" value="{{ q }}" placeholder="{{ placeholder }}" aria-label="{{ placeholder }}">
+  </form>
+</div>
+{%- endmacro %}
+
+{% macro pager(p, noun='rows') -%}
+<nav class="pager" aria-label="Pagination">
+  <span class="pager__info">
+    {% if p.total %}Showing <b>{{ p.start + 1 }}–{{ p.end }}</b> of <b>{{ '{:,}'.format(p.total) }}</b> {{ noun }}{% else %}No {{ noun }}{% endif %}
+  </span>
+  {% if p.pages > 1 %}
+  <div class="pager__pages">
+    {% if p.prev %}<a class="pager__btn" href="{{ page_url(page=p.prev) }}" aria-label="Previous page"><i class="bi bi-chevron-left"></i></a>
+    {% else %}<span class="pager__btn is-disabled" aria-hidden="true"><i class="bi bi-chevron-left"></i></span>{% endif %}
+    {% for n in p.window %}
+      {% if n is none %}<span class="pager__gap">…</span>
+      {% elif n == p.page %}<span class="pager__btn is-current" aria-current="page">{{ n }}</span>
+      {% else %}<a class="pager__btn" href="{{ page_url(page=n) }}">{{ n }}</a>{% endif %}
+    {% endfor %}
+    {% if p.next %}<a class="pager__btn" href="{{ page_url(page=p.next) }}" aria-label="Next page"><i class="bi bi-chevron-right"></i></a>
+    {% else %}<span class="pager__btn is-disabled" aria-hidden="true"><i class="bi bi-chevron-right"></i></span>{% endif %}
+  </div>
+  {% endif %}
+  <form class="pager__per" method="get">
+    {% for k, v in request.args.items() if k not in ('per', 'page') %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+    <label>Rows <select name="per" onchange="this.form.submit()">
+      {% for n in per_page_choices %}<option value="{{ n }}" {{ 'selected' if n == p.per }}>{{ n }}</option>{% endfor %}
+    </select></label>
+  </form>
+</nav>
+{%- endmacro %}

@@ -1,0 +1,24 @@
+<section class="hero" id="hero">
+  <div class="hero__media">
+    {% for v in hero_video_files %}
+      <video class="hero__scene-layer hero__video {{ 'is-active' if loop.first }}" autoplay muted loop playsinline preload="{{ 'auto' if loop.first else 'metadata' }}" poster="{{ img('hero_poster') }}">
+        <source src="{{ v.src }}" type="{{ v.type }}">
+      </video>
+    {% endfor %}
+    {% for slug, caption in hero.scenes if not hero_video_files %}
+      <div class="hero__scene-layer {{ 'is-active' if loop.first }}" data-src="{{ img('hero_scene_' ~ loop.index) }}" style="background-image: url('{{ img('hero_scene_' ~ loop.index) }}');"></div>
+    {% endfor %}
+    <canvas class="hero__canvas" id="hero-canvas" aria-hidden="true"></canvas>
+    <div class="hero__overlay"></div>
+  </div>
+
+  <div class="hero__content shell">
+    <h1 class="hero__title"><span class="hero__line"><em style="--d: .35s">{{ hero.headline }}</em></span></h1>
+  </div>
+
+  <div class="hero__foot hero-rise" style="--d: .9s">
+    <button type="button" class="hero__cue" id="hero-scroll-cue" aria-label="Scroll to explore">
+      <span aria-hidden="true">↓</span>
+    </button>
+  </div>
+</section>

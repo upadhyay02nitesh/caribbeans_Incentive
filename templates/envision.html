@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "partials/section_head.html" import page_hero %}
+{% block title %}Envision Your Experience · {{ brand }}{% endblock %}
+{% block body_class %}page-envision{% endblock %}
+
+{% block content %}
+{{ page_hero('itinerary.day4', 'ENVISION YOUR EXPERIENCE', content.h2, index='VII') }}
+
+<section class="opening">
+  <div class="shell opening__inner">
+    <p class="opening__lead" data-reveal><span class="opening__eyebrow">Plan with us</span> {{ content.paragraphs[0]|lead(2) }}</p>
+  </div>
+</section>
+
+{% set envision_content = content %}
+{% include "partials/itinerary.html" %}
+{% include "partials/estimator.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/itinerary.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/estimator.js') }}" defer></script>
+{% endblock %}

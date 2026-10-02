@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en" class="{% block html_class %}{% endblock %}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% block title %}{{ brand }} · {{ tagline }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}Caribbean Incentive is a boutique Destination Management Company running corporate incentives, meetings, conferences and group programs across the Eastern Caribbean.{% endblock %}">
+
+  <meta property="og:title" content="{% block og_title %}{{ brand }}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Your People, Our Home, Caribbean Connection.{% endblock %}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ brand }}">
+  <meta name="theme-color" content="#0A2124">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% block twitter_title %}{{ brand }}{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_description %}Your People, Our Home, Caribbean Connection.{% endblock %}">
+
+  {# Real client brand mark — static/img/brand/, derived from the supplied logo. #}
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/brand/favicon-16.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/brand/favicon-32.png') }}">
+  <link rel="icon" type="image/png" sizes="48x48" href="{{ url_for('static', filename='img/brand/favicon-48.png') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/brand/favicon-180.png') }}">
+
+  <script>
+    /* Runs before first paint: flags JS so motion/curtain styles apply only
+       when scripts can undo them. Without JS, every element stays visible. */
+    (function (d) {
+      d.documentElement.classList.add("js");
+      try {
+        if (!sessionStorage.getItem("ci-visited")) {
+          d.documentElement.classList.add("first-visit");
+          sessionStorage.setItem("ci-visited", "1");
+        }
+      } catch (e) {}
+    })(document);
+  </script>
+
+  {% if tracking_script %}<script src="{{ tracking_script }}" async></script>{% endif %}
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,200..700,0..100;1,9..144,200..700,0..100&family=Hanken+Grotesk:wght@300..600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body id="top" class="{% block body_class %}{% endblock %}">
+
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <div class="curtain" aria-hidden="true">
+    <div class="curtain__inner">
+      <span class="curtain__mark">{{ brand }}</span>
+      <span class="curtain__line"></span>
+      <span class="curtain__meta">{{ brand_descriptor }}</span>
+    </div>
+  </div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor" aria-hidden="true"><span class="cursor__ring"><span class="cursor__label"></span></span><span class="cursor__dot"></span></div>
+
+  {% include "partials/nav.html" %}
+  {% include "partials/flash.html" %}
+
+  <main id="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include "partials/footer.html" %}
+  {% block fab %}
+    {# Planning estimate is reachable from every page; on /envision it scrolls in place. #}
+    <a href="{{ url_for('main.envision') }}#estimator" class="inquiry-fab" id="inquiry-fab" data-cursor="Estimate">
+      <span class="inquiry-fab__dot" aria-hidden="true"></span>
+      <span>Planning Estimate</span>
+    </a>
+  {% endblock %}
+  {% include "partials/chat.html" %}
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
+  <script src="{{ url_for('static', filename='js/motion.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/nav.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/chat.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/track.js') }}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

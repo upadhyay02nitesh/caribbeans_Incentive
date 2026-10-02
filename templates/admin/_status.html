@@ -1,0 +1,18 @@
+{# Shared admin row controls: pipeline status (saved to Postgres) and alert delivery icons. #}
+{% macro status_form(kind, reference, current) %}
+<form class="status-form" method="post" action="{{ url_for('admin.set_status', kind=kind, reference=reference) }}">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <label class="visually-hidden" for="status-{{ reference }}">Status for {{ reference }}</label>
+  <select id="status-{{ reference }}" name="status" class="status-select badge--{{ current|lower }}" onchange="this.form.submit()">
+    {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if s == current }}>{{ s }}</option>{% endfor %}
+  </select>
+  <noscript><button type="submit" class="status-save">Save</button></noscript>
+</form>
+{% endmacro %}
+
+{% macro alerts(emailed, whatsapped) %}
+<span class="alert-icons">
+  <i class="bi bi-envelope{{ '-check' if emailed else '' }} {{ 'is-on' if emailed }}" title="Email {{ 'sent' if emailed else 'not sent' }}"></i>
+  <i class="bi bi-whatsapp {{ 'is-on' if whatsapped }}" title="WhatsApp {{ 'sent' if whatsapped else 'not sent' }}"></i>
+</span>
+{% endmacro %}

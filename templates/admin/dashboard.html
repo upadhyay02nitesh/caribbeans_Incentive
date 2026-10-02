@@ -1,0 +1,380 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Dashboard — Admin — {{ brand }}{% endblock %}
+
+{% from "admin/_charts.html" import donut, split %}
+{% block admin_content %}
+{% set stage_colors = {'New': 'var(--a-lagoon-2)', 'Contacted': 'var(--a-gold)', 'Qualified': 'var(--a-sky)', 'Won': 'var(--a-good)', 'Lost': '#F29A86'} %}
+<script type="application/json" id="admin-chart-data">{{ chart_json|safe }}</script>
+
+<div class="admin-header rise">
+  <div>
+    <span class="eyebrow">Overview · last 14 days</span>
+    <h1>{{ greeting }}, <em>{{ admin_user|capitalize }}</em>.</h1>
+    <p class="admin-header__lede">
+      {% if summary.sessions_delta is none %}{{ summary.sessions_week }} session{{ 's' if summary.sessions_week != 1 }} this week{% else %}Traffic is {{ 'up' if summary.sessions_delta >= 0 else 'down' }} {{ summary.sessions_delta|abs }}% on last week{% endif %}, and {{ summary.awaiting_reply }} new brief{{ 's' if summary.awaiting_reply != 1 }} {{ 'are' if summary.awaiting_reply != 1 else 'is' }} waiting for a reply.
+    </p>
+    <div class="hero-pills">
+      <span class="hero-pill"><i class="bi bi-envelope-paper"></i><b>{{ summary.awaiting_reply }}</b> awaiting reply</span>
+      <span class="hero-pill"><i class="bi bi-eye"></i><b>{{ summary.sessions_week }}</b> sessions this week</span>
+      <span class="hero-pill"><i class="bi bi-gem"></i><b>{{ summary.pipeline_value|money }}</b> in pipeline</span>
+    </div>
+  </div>
+  <div class="admin-header__actions">
+    <a href="{{ url_for('admin.analytics') }}" class="btn"><i class="bi bi-activity"></i> Analytics</a>
+    <a href="{{ url_for('admin.briefs') }}" class="btn btn--gold"><i class="bi bi-envelope-paper"></i> Review briefs</a>
+  </div>
+</div>
+
+{# ------------------------------------------------------------------ KPIs #}
+<div class="grid grid--kpi">
+  <article class="panel kpi kpi--feature rise" style="--i:1">
+    <div class="kpi__top">
+      <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-gem"></i></span> Pipeline value</span>
+      <span class="delta" title="Pipeline added this week"><i class="bi bi-arrow-up-right"></i> +{{ (summary.pipeline_daily[-1] - summary.pipeline_daily[-8])|money }}</span>
+    </div>
+    <div class="kpi__value" data-count="{{ summary.pipeline_value / 1000000 }}" data-prefix="$" data-suffix="M" data-decimals="1">{{ summary.pipeline_value|money }}</div>
+    <div class="kpi__foot">
+      <span class="kpi__note">{{ summary.won_value|money }} won · open + won briefs</span>
+      <div class="kpi__spark" data-spark="pipeline" data-type="step" data-color="#F3D59E"></div>
+    </div>
+  </article>
+
+  <article class="panel kpi rise" style="--i:2">
+    <div class="kpi__top">
+      <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-eye"></i></span> Sessions</span>
+      {% if summary.sessions_delta is not none %}
+      <span class="delta {{ 'delta--flat' if summary.sessions_delta <= 0 }}"><i class="bi bi-arrow-{{ 'up' if summary.sessions_delta > 0 else 'down' }}-right"></i> {{ summary.sessions_delta }}%</span>
+      {% endif %}
+    </div>
+    <div class="kpi__value" data-count="{{ summary.sessions_14d }}">{{ '{:,}'.format(summary.sessions_14d) }}</div>
+    <div class="kpi__foot">
+      <span class="kpi__note">{{ summary.sessions_week }} this week vs last</span>
+      <div class="kpi__spark" data-spark="sessions" data-color="#7FD8D0"></div>
+    </div>
+  </article>
+
+  <article class="panel kpi rise" style="--i:3">
+    <div class="kpi__top">
+      <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-envelope-paper"></i></span> Event briefs</span>
+      <span class="delta" title="Submitted this week">+{{ summary.briefs_week }} wk</span>
+    </div>
+    <div class="kpi__value" data-count="{{ summary.total_briefs }}">{{ summary.total_briefs }}<small>submitted</small></div>
+    <div class="kpi__foot">
+      <span class="kpi__note">{{ summary.awaiting_reply }} awaiting first reply</span>
+      <div class="kpi__spark" data-spark="briefs" data-type="bars" data-color="#E2B062"></div>
+    </div>
+  </article>
+
+  <article class="panel kpi rise" style="--i:4">
+    <div class="kpi__top">
+      <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-bullseye"></i></span> Lead conversion</span>
+      
+    </div>
+    <div class="kpi__foot" style="margin-top:18px;padding-top:0;align-items:center">
+      <div>
+        <div class="kpi__value" style="margin-top:0" data-count="{{ summary.conversion_rate }}" data-suffix="%">{{ summary.conversion_rate }}%</div>
+        <span class="kpi__note" style="display:block;margin-top:10px">{{ summary.converted }} of {{ summary.total_visitors }} tracked · {{ summary.site_conversion }}% site-wide</span>
+      </div>
+      <div class="ring" data-ring="{{ summary.conversion_rate }}">
+        <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="ring__track" cx="50" cy="50" r="42" fill="none" stroke-width="8"/><circle class="ring__bar" cx="50" cy="50" r="42" fill="none" stroke-width="8"/></svg>
+      </div>
+    </div>
+  </article>
+</div>
+
+{# ------------------------------------------- every tab at a glance #}
+{% set ch = workspace.charts %}
+<div class="ws-head rise" style="--i:5">
+  <span class="eyebrow">Across your workspace</span>
+  <p class="panel__sub">Visitors, every inbox and the Sellsy pipeline — click a card to open its tab.</p>
+</div>
+<div class="grid grid--5">
+  <a class="panel ws-card rise" style="--i:5" href="{{ url_for('admin.visitors') }}">
+    <span class="ws-card__top"><span class="kpi__icon"><i class="bi bi-people"></i></span><span class="ws-card__label">Visitors</span><i class="bi bi-arrow-up-right ws-card__go"></i></span>
+    {% set v_total = ch.visitors|sum(attribute='value') %}<span class="ws-card__value" data-count="{{ v_total }}">{{ v_total }}</span>
+    <span class="ws-card__note">{{ ch.visitors[2].value }} converted · {{ ch.visitors[1].value }} returning</span>
+    {{ split(ch.visitors) }}
+  </a>
+  {% for kind, label, icon, endpoint in [('brief', 'Event briefs', 'envelope-paper', 'admin.briefs'), ('rfp', 'RFP uploads', 'file-earmark-text', 'admin.rfps'), ('callback', 'Callbacks', 'telephone-inbound', 'admin.callbacks')] %}
+  <a class="panel ws-card rise" style="--i:{{ 6 + loop.index0 }}" href="{{ url_for(endpoint) }}">
+    <span class="ws-card__top"><span class="kpi__icon"><i class="bi bi-{{ icon }}"></i></span><span class="ws-card__label">{{ label }}</span><i class="bi bi-arrow-up-right ws-card__go"></i></span>
+    <span class="ws-card__value" data-count="{{ workspace.totals[kind] }}">{{ workspace.totals[kind] }}</span>
+    <span class="ws-card__note">{% if workspace.new[kind] %}<b class="ws-hot">{{ workspace.new[kind] }} new</b> awaiting reply{% else %}All replied to{% endif %}</span>
+    {{ split(ch[kind]) }}
+  </a>
+  {% endfor %}
+  <a class="panel ws-card ws-card--sellsy rise" style="--i:9" href="{{ url_for('admin.sellsy_pipeline') }}">
+    <span class="ws-card__top"><span class="kpi__icon"><i class="bi bi-kanban"></i></span><span class="ws-card__label">Sellsy</span><i class="bi bi-arrow-up-right ws-card__go"></i></span>
+    {% if sellsy_data %}
+      <span class="ws-card__value">{{ sellsy_data.open_value|eur }}</span>
+      <span class="ws-card__note">{{ sellsy_data.open_count }} open · {{ sellsy_data.won_count }} won · {{ sellsy_data.website_count }} from site</span>
+      {{ split(ch.sellsy) }}
+    {% else %}
+      <span class="ws-card__value ws-card__value--muted">—</span>
+      <span class="ws-card__note">{{ "Couldn't reach Sellsy" if sellsy_error else 'Syncing with Sellsy…' }}</span>
+      {{ split([]) }}
+    {% endif %}
+  </a>
+</div>
+
+<div class="grid grid--3">
+  <section class="panel rise" style="--i:10">
+    <div class="panel__head">
+      <div><h2 class="panel__title">Visitor status</h2><p class="panel__sub">Every browser tracked on the site</p></div>
+      <a class="panel__link" href="{{ url_for('admin.visitors') }}">Visitors <i class="bi bi-arrow-right"></i></a>
+    </div>
+    {{ donut(ch.visitors, 'visitors', 'Visitors by status') }}
+  </section>
+  <section class="panel rise" style="--i:11">
+    <div class="panel__head">
+      <div><h2 class="panel__title">Requests by channel</h2><p class="panel__sub">Briefs, RFPs and callbacks received</p></div>
+    </div>
+    {{ donut(ch.channels, 'requests', 'Requests by channel') }}
+  </section>
+  <section class="panel rise" style="--i:12">
+    <div class="panel__head">
+      <div><h2 class="panel__title">Request status</h2><p class="panel__sub">All three inboxes combined</p></div>
+    </div>
+    {{ donut(ch.requests, 'requests', 'Requests by status') }}
+  </section>
+</div>
+
+<div class="grid grid--5-7">
+  <section class="panel rise" style="--i:13">
+    <div class="panel__head">
+      <div><h2 class="panel__title">Sellsy deals</h2><p class="panel__sub">{{ sellsy_data.pipeline if sellsy_data else 'CRM pipeline' }} · by status</p></div>
+      <a class="panel__link" href="{{ url_for('admin.sellsy_pipeline') }}">Sellsy <i class="bi bi-arrow-right"></i></a>
+    </div>
+    {% if sellsy_data and ch.sellsy %}
+      {{ donut(ch.sellsy, 'deals', 'Sellsy deals by status') }}
+    {% else %}
+      <p class="panel__sub"><i class="bi bi-{{ 'exclamation-triangle' if sellsy_error else 'hourglass-split' }}"></i> {{ "Couldn't reach Sellsy: " ~ sellsy_error if sellsy_error else ('No opportunities yet.' if sellsy_data else 'Syncing with Sellsy — refresh in a moment.') }}</p>
+    {% endif %}
+  </section>
+  <section class="panel rise" style="--i:14">
+    <div class="panel__head">
+      <div><h2 class="panel__title">Sellsy open pipeline</h2><p class="panel__sub">Open and late opportunities by stage, in EUR</p></div>
+    </div>
+    {% if sellsy_data %}
+      {% set sellsy_colors = ['var(--a-lagoon-2)', 'var(--a-gold)', 'var(--a-sky)', 'var(--s4)', 'var(--s5)', 'var(--a-good)'] %}
+      <div class="ws-money">
+        <div><div class="big-number">{{ sellsy_data.open_value|eur }}</div><p>open pipeline</p></div>
+        <div><div class="ws-money__alt">{{ sellsy_data.weighted_value|eur }}</div><p>weighted by stage</p></div>
+        <div><div class="ws-money__alt ws-money__alt--won">{{ sellsy_data.won_value|eur }}</div><p>won</p></div>
+      </div>
+      <div class="stack" role="img" aria-label="Open pipeline value split by stage">
+        {% for s in sellsy_data.stages %}{% if s.value %}<i style="--v:{{ s.value }};--c:{{ sellsy_colors[loop.index0 % sellsy_colors|length] }}" title="{{ s.name }} · {{ s.value|eur }}"></i>{% endif %}{% endfor %}
+      </div>
+      <ul class="stage-list">
+        {% for s in sellsy_data.stages %}
+        <li><i style="--c:{{ sellsy_colors[loop.index0 % sellsy_colors|length] }}"></i> {{ s.name }} <b>{{ s.value|eur if s.value else '—' }}</b><em>{{ s.count }}</em></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="panel__sub">The pipeline appears here once Sellsy has synced.</p>
+    {% endif %}
+  </section>
+</div>
+
+{# -------------------------------------------------- traffic + pipeline #}
+<div class="grid grid--2-1">
+  <section class="panel rise" style="--i:5">
+    <div class="panel__head">
+      <div>
+        <h2 class="panel__title">Daily sessions</h2>
+        <p class="panel__sub">{{ '{:,}'.format(summary.sessions_14d) }} sessions · {{ data_window }}</p>
+      </div>
+      <a class="panel__link" href="{{ url_for('admin.analytics') }}">Full analytics <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="chart" data-area></div>
+  </section>
+
+  <section class="panel rise" style="--i:6">
+    <div class="panel__head">
+      <div>
+        <h2 class="panel__title">Pipeline by stage</h2>
+        <p class="panel__sub">Valued at budget-band midpoint</p>
+      </div>
+      <a class="panel__link" href="{{ url_for('admin.briefs') }}">Briefs <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="big-number">{{ summary.pipeline_value|money }}</div>
+    <p>across {{ summary.stages|rejectattr('stage', 'equalto', 'Lost')|sum(attribute='count') }} live briefs</p>
+    <div class="stack" role="img" aria-label="Pipeline value split by stage">
+      {% for s in summary.stages if s.value %}<i style="--v:{{ s.value }};--c:{{ stage_colors[s.stage] }}" title="{{ s.stage }} · {{ s.value|money }}"></i>{% endfor %}
+    </div>
+    <ul class="stage-list">
+      {% for s in summary.stages %}
+      <li><i style="--c:{{ stage_colors[s.stage] }}"></i> {{ s.stage }} <b>{{ s.value|money if s.value else '—' }}</b><em>{{ s.count }}</em></li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+
+{# ------------------------------------------ modules / sources / islands #}
+<div class="grid grid--3">
+  <section class="panel rise" style="--i:7">
+    <div class="panel__head">
+      <div>
+        <h2 class="panel__title">Module engagement</h2>
+        <p class="panel__sub">Share of viewers who interacted</p>
+      </div>
+    </div>
+    <ol class="rank">
+      {% for m in module_stats|sort(attribute='engagement_rate', reverse=true) %}
+      <li class="rank__row">
+        <span class="rank__name"><span class="rank__no">0{{ loop.index }}</span><span>{{ m.module }}</span></span>
+        <span class="rank__val">{{ m.engagement_rate }}%<small>{{ m.avg_time_sec }}s avg</small></span>
+        <span class="rank__bar"><i style="--w:{{ m.engagement_rate }}%;--c:{{ 'var(--a-gold)' if loop.first else 'var(--s1)' }}"></i></span>
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <section class="panel rise" style="--i:8">
+    <div class="panel__head">
+      <div>
+        <h2 class="panel__title">Traffic sources</h2>
+        <p class="panel__sub">Where sessions started</p>
+      </div>
+    </div>
+    {% include 'admin/_donut.html' %}
+  </section>
+
+  <section class="panel rise" style="--i:9">
+    <div class="panel__head">
+      <div>
+        <h2 class="panel__title">Island interest</h2>
+        <p class="panel__sub">Destination page views</p>
+      </div>
+    </div>
+    {% set top_views = [island_views[0].views, 1]|max %}
+    <ol class="rank">
+      {% for isle in island_views[:5] %}
+      <li class="rank__row">
+        <span class="rank__name"><img class="rank__thumb" src="{{ img('island.' ~ isle.slug ~ '.card') }}" alt="" loading="lazy"><span>{{ isle.island }}</span></span>
+        <span class="rank__val">{{ isle.views }}</span>
+        <span class="rank__bar"><i style="--w:{{ (isle.views / top_views * 100)|round(1) }}%;--c:var(--s1)"></i></span>
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+</div>
+
+{# ------------------------------------------------ briefs + live activity #}
+<div class="grid grid--1-1">
+  <section class="panel rise" style="--i:10">
+    <div class="panel__head">
+      <div>
+        <h2 class="panel__title">Latest event briefs</h2>
+        <p class="panel__sub">Newest first</p>
+      </div>
+      <a class="panel__link" href="{{ url_for('admin.briefs') }}">View all <i class="bi bi-arrow-right"></i></a>
+    </div>
+    {% for b in summary.recent_briefs %}
+    <div class="brief">
+      <span class="avatar" style="--h:{{ (b.id * 47) % 360 }}">{{ b.company|initials }}</span>
+      <div class="who">
+        <div>
+          <div class="who__name">{{ b.company }}</div>
+          <div class="who__meta">{{ b.request_type }} · {{ b.group_size }} guests · {{ b.contact_name }}</div>
+        </div>
+      </div>
+      <div class="brief__value">
+        <b>{{ b.budget }}</b>
+        <span class="badge badge--{{ b.status|lower|replace(' ', '-') }}">{{ b.status }}</span>
+      </div>
+    </div>
+    {% else %}
+    <p class="panel__sub">No event briefs yet.</p>
+    {% endfor %}
+  </section>
+
+  <section class="panel rise" style="--i:11">
+    <div class="panel__head">
+      <div>
+        <h2 class="panel__title">Activity stream</h2>
+        <p class="panel__sub">What prospects did most recently</p>
+      </div>
+      <span class="admin-live"><span>Recent</span></span>
+    </div>
+    <ul class="feed">
+      {% for a in activity %}
+      {% set is_brief = 'Brief' in a.event %}
+      {% set icon = 'send-check' if is_brief else 'calculator' if 'Estimator' in a.event else 'map' if 'Map' in a.event else 'calendar-week' if 'Itinerary' in a.event else 'arrow-return-right' if 'Returned' in a.event else 'box-arrow-left' if 'Exited' in a.event else 'cursor' %}
+      <li>
+        <span class="feed__icon {{ 'feed__icon--gold' if is_brief }}"><i class="bi bi-{{ icon }}"></i></span>
+        <a href="{{ url_for('admin.visitor_detail', visitor_id=a.visitor_id) }}" style="min-width:0">
+          <div class="feed__event">{{ a.event }}</div>
+          <div class="feed__detail"><span class="feed__who">{{ a.company or a.visitor }}</span> — {{ a.detail }}</div>
+        </a>
+        <span class="feed__time">{{ a.time[5:10]|replace('-', '/') }} · {{ a.time[11:] }}</span>
+      </li>
+      {% else %}
+      <li class="muted">No visitor activity yet.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+
+{# ------------------------------------------------------ audience strip #}
+<section class="panel panel--flush rise" style="--i:12;margin-bottom:18px">
+  <div class="strip">
+    <div>
+      <div class="strip__label">Device split</div>
+      <div class="split" role="img" aria-label="Desktop {{ summary.quick_stats.device_split.Desktop }}%, Mobile {{ summary.quick_stats.device_split.Mobile }}%, Tablet {{ summary.quick_stats.device_split.Tablet }}%">
+        <i style="--v:{{ summary.quick_stats.device_split.Desktop }};--c:var(--s1)"></i>
+        <i style="--v:{{ summary.quick_stats.device_split.Mobile }};--c:var(--s2)"></i>
+        <i style="--v:{{ summary.quick_stats.device_split.Tablet }};--c:var(--s3)"></i>
+      </div>
+      <div class="split-legend legend">
+        <span><i style="--c:var(--s1)"></i>Desktop {{ summary.quick_stats.device_split.Desktop }}%</span>
+        <span><i style="--c:var(--s2)"></i>Mobile {{ summary.quick_stats.device_split.Mobile }}%</span>
+        <span><i style="--c:var(--s3)"></i>Tablet {{ summary.quick_stats.device_split.Tablet }}%</span>
+      </div>
+    </div>
+    <div><div class="strip__label">Avg. session</div><div class="strip__value">{{ summary.quick_stats.avg_session_duration }}</div></div>
+    <div><div class="strip__label">Bounce rate</div><div class="strip__value">{{ summary.quick_stats.bounce_rate }}%</div></div>
+    <div><div class="strip__label">Multi-module</div><div class="strip__value">{{ summary.engagement_avg }}%</div></div>
+    <div><div class="strip__label">Peak hour</div><div class="strip__value">{{ summary.quick_stats.peak_traffic_hour }}</div></div>
+  </div>
+</section>
+
+{# ---------------------------------------------------- recent visitors #}
+<section class="panel panel--flush rise" style="--i:13">
+  <div class="panel__head">
+    <div>
+      <h2 class="panel__title">Recently active visitors</h2>
+      <p class="panel__sub">Identified companies, ranked by last visit</p>
+    </div>
+    <a class="panel__link" href="{{ url_for('admin.visitors') }}">All visitors <i class="bi bi-arrow-right"></i></a>
+  </div>
+  <div class="table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr><th>Visitor</th><th>Source</th><th>Top module</th><th>Interest</th><th>Status</th><th>Last seen</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for v in summary.recent_visitors %}
+        {% set level, stars = engagement_level(v) %}
+        <tr class="row-link" data-href="{{ url_for('admin.visitor_detail', visitor_id=v.id) }}">
+          <td>
+            <div class="who">
+              <span class="avatar" style="--h:{{ (v.id * 47) % 360 }}">{{ (v.company or v.name or v.city)|initials }}</span>
+              <div><div class="who__name">{{ v.company or v.name or 'Anonymous' }}</div><div class="who__meta">{{ v.label }} · {{ v.city }}</div></div>
+            </div>
+          </td>
+          <td class="muted">{{ v.source }}</td>
+          <td>{{ v.top_module }}</td>
+          <td><span class="meter meter--{{ level|lower }}" title="{{ v.pages_viewed }} pages, {{ v.sessions }} session{{ 's' if v.sessions != 1 }}"><span class="meter__bars"><i></i><i></i><i></i></span>{{ level }}</span></td>
+          <td><span class="badge badge--{{ v.status|lower|replace(' ', '-') }}">{{ v.status }}</span></td>
+          <td class="muted">{{ v.last_seen }}</td>
+          <td class="num"><i class="bi bi-arrow-right row-go"></i></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="muted" style="text-align:center;padding:32px">No visitors yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

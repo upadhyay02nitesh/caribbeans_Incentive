@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "partials/section_head.html" import page_hero, section_head %}
+{% block title %}Where It All Begins · {{ brand }}{% endblock %}
+{% block body_class %}page-story{% endblock %}
+
+{% block content %}
+{{ page_hero('island.saint-martin.the-island', content.kicker, content.h2, index='I') }}
+
+<section class="opening">
+  <div class="shell opening__inner">
+    <p class="opening__lead" data-reveal><span class="opening__eyebrow">Our belief</span> {{ content.teaser_paragraphs[0]|lead(2) }}</p>
+  </div>
+</section>
+
+<section class="story-split">
+  <div class="shell story-split__grid">
+    <div class="story-split__aside">
+      <div class="story-split__sticky">
+        {{ section_head('OUR APPROACH', content.full_h2, index='01') }}
+        <figure class="frame frame--portrait" data-clip>
+          <img src="{{ img('experience.the-art-of-execution.2') }}" alt="An evening program set for guests" loading="lazy" width="1400" height="933" data-parallax="8">
+        </figure>
+        <a href="{{ url_for('static', filename='docs/caribbean-incentive-brochure.pdf') }}" target="_blank" rel="noopener" class="link-arrow">Brochure <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+    <div class="story-split__body prose">
+      {% for p in content.full_paragraphs[1:2] %}<p data-reveal>{{ p | md_bold }}</p>{% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="values">
+  <div class="shell">
+    {{ section_head('WHAT GUIDES US', 'Four values, one way of working', index='02') }}
+    <div class="values__grid">
+      {% for v in content.value_props %}
+        <article class="value" data-reveal style="--rd: {{ loop.index0 * 0.08 }}s">
+          <span class="value__num">{{ '%02d' % loop.index }}</span>
+          <h3 class="value__title">{{ v.title }}</h3>
+          <p class="value__body">{{ v.body }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="strengths strengths--light">
+  <div class="shell">
+    {{ section_head('SIGNATURE STRENGTHS', 'What sets us apart', index='03') }}
+    <ol class="strengths__list">
+      {% for s in content.strengths %}
+        <li class="strengths__row" data-reveal>
+          <span class="strengths__num">{{ '%02d' % loop.index }}</span>
+          <p class="strengths__text">{{ s }}</p>
+        </li>
+      {% endfor %}
+    </ol>
+  </div>
+</section>
+
+{% endblock %}

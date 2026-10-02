@@ -1,0 +1,33 @@
+<section class="voices" id="testimonials">
+  <div class="shell">
+    <div class="voices__head">
+      <div class="section-head__meta" data-reveal>
+        <span class="eyebrow">{{ testimonials.kicker }}</span>
+      </div>
+      <h2 class="display-3" data-split>{{ testimonials.h2 }}</h2>
+    </div>
+
+    <div class="voices__carousel" id="testimonial-carousel" role="region" aria-roledescription="carousel" aria-label="Client testimonials">
+      <span class="voices__mark" aria-hidden="true">“</span>
+      <div class="voices__track">
+        {% for t in testimonials.quotes %}
+          <figure class="testimonial-slide {{ 'is-active' if loop.first }}" role="group" aria-roledescription="slide" aria-label="{{ loop.index }} of {{ loop.length }}" {{ 'aria-hidden=true' if not loop.first }}>
+            <blockquote class="voices__quote">{{ t.quote }}</blockquote>
+            <figcaption class="voices__cite">
+              <span class="voices__name">{{ t.name }}</span>
+              <span class="voices__role">{{ t.role }}</span>
+            </figcaption>
+          </figure>
+        {% endfor %}
+      </div>
+
+      <div class="voices__controls">
+        <div class="testimonial-carousel__dots" role="tablist" aria-label="Choose testimonial">
+          {% for t in testimonials.quotes %}
+            <button type="button" class="testimonial-dot {{ 'is-active' if loop.first }}" role="tab" aria-selected="{{ 'true' if loop.first else 'false' }}" aria-label="Testimonial {{ loop.index }}"><span>{{ '%02d' % loop.index }}</span></button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

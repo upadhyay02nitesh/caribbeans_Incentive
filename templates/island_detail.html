@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% from "partials/section_head.html" import page_hero %}
+{% block title %}{{ island.name }} · {{ brand }}{% endblock %}
+{% block description %}{{ island.headline }}{% endblock %}
+{% block body_class %}island-page{% endblock %}
+
+{% block content %}
+<section class="island-hero" data-page-hero>
+  <div class="island-hero__media">
+    <img src="{{ img('island.' ~ island.slug ~ '.hero') }}" alt="" width="1400" height="933" fetchpriority="high" data-hero-img>
+  </div>
+  <div class="island-hero__overlay" aria-hidden="true"></div>
+  <div class="shell island-hero__content">
+    <div class="page-hero__meta hero-rise" style="--d:.2s">
+      <span class="eyebrow eyebrow--light">{{ island.full_name }}</span>
+    </div>
+    <h1 class="island-hero__name hero-lines" style="--len: {{ island.name|length }}"><span class="hero-lines__line"><span style="--d:.35s">{{ island.name }}</span></span></h1>
+    <p class="page-hero__lede hero-rise" style="--d:.7s">{{ island.headline }}</p>
+  </div>
+  <div class="shell island-hero__bar hero-rise" style="--d:.95s">
+    <dl class="island-hero__facts">
+      <div><dt>Access</dt><dd>{{ island.access }}</dd></div>
+      <div><dt>Suited to</dt><dd>{{ island.suited_to }}</dd></div>
+    </dl>
+    <a href="#island-intro" class="scroll-cue" data-scroll-to><span class="scroll-cue__line" aria-hidden="true"></span><span>Scroll</span></a>
+  </div>
+</section>
+
+<section class="opening" id="island-intro">
+  <div class="shell opening__inner">
+    <p class="opening__lead" data-reveal><span class="opening__eyebrow">Why {{ island.name }}</span> {{ island.intro|lead }}</p>
+  </div>
+</section>
+
+<nav class="island-subnav" id="island-subnav" aria-label="{{ island.name }} sections">
+  <div class="shell island-subnav__inner">
+    <span class="island-subnav__name">{{ island.name }}</span>
+    <div class="island-subnav__links">
+      <a href="#the-island" class="island-subnav__link is-active" data-target="the-island">THE ISLAND</a>
+      <a href="#gastronomy" class="island-subnav__link" data-target="gastronomy">GASTRONOMY</a>
+      <a href="#experiences" class="island-subnav__link" data-target="experiences">EXPERIENCES</a>
+    </div>
+  </div>
+</nav>
+
+{% set panels = [('the-island', 'The Island', 'caribbean-legacy'), ('gastronomy', 'Gastronomy', 'island-flavors'), ('experiences', 'Experiences', 'across-sand-and-sea')] %}
+{% for key, title, theme in panels %}
+<section class="island-panel {{ 'island-panel--flip' if loop.index is even }} {{ 'island-panel--tint' if loop.index == 2 }}" id="{{ key }}">
+  <div class="shell">
+    <div class="island-panel__grid">
+      <div class="island-panel__media">
+        <figure class="frame frame--panel" data-clip>
+          <img src="{{ img('island.' ~ island.slug ~ '.' ~ key) }}" alt="{{ island.name }} · {{ title|lower }}" loading="lazy" width="1400" height="933" class="island-panel__img" data-parallax="8">
+        </figure>
+      </div>
+      <div class="island-panel__copy">
+        <div class="section-head__meta" data-reveal>
+          <span class="eyebrow">{{ island.name }}</span>
+        </div>
+        <h2 class="display-2" data-split>{{ title }}</h2>
+        {% if island.panels[key] %}<p data-reveal>{{ island.panels[key][0] }}</p>{% endif %}
+      </div>
+    </div>
+
+    <div class="expand-cards" data-group="{{ key }}">
+      {% for c in island.cards[key] %}
+        {% if key == 'the-island' %}
+          {% set card_img = img('island.' ~ island.slug ~ '.' ~ ['the-island', 'hero', 'card', 'experiences'][loop.index0 % 4]) %}
+        {% else %}
+          {% set card_img = img('island.' ~ island.slug ~ '.' ~ key) if loop.first else img('experience.' ~ theme ~ '.' ~ ((island_index + loop.index0) % 6 + 1)) %}
+        {% endif %}
+        <div class="expand-card" data-reveal style="--rd: {{ loop.index0 * 0.06 }}s">
+          <img class="expand-card__bg" src="{{ card_img }}" alt="" loading="lazy" width="1400" height="933">
+          <div class="expand-card__shade" aria-hidden="true"></div>
+          <button type="button" class="expand-card__head" aria-expanded="false" aria-controls="{{ island.slug }}-{{ key }}-{{ loop.index }}">
+            <span class="expand-card__title">{% if c.label %}<span class="card-label">{{ c.label }}</span>{% endif %}<span class="expand-card__name">{{ c.title }}</span></span>
+            <span class="expand-card__icon" aria-hidden="true"></span>
+          </button>
+          <div class="expand-card__body" id="{{ island.slug }}-{{ key }}-{{ loop.index }}"><p>{{ c.body }}</p></div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endfor %}
+
+{% if connections %}
+<section class="getting-here dark">
+  <div class="shell getting-here__grid">
+    <div>
+      <span class="eyebrow eyebrow--light" data-reveal>Getting Here</span>
+      <h2 class="display-3" data-split>Arriving in {{ island.name }}</h2>
+    </div>
+    <ul class="getting-here__chips">
+      {% for mode, time, note in connections %}
+        <li class="route-chip" data-reveal>
+          <span class="route-chip__mode">{{ mode|upper }}{{ ' · from USA' if mode == 'Direct' }}</span>
+          <span class="route-chip__time">{{ time }}</span>
+          <span class="route-chip__note">{{ note }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+    <a href="{{ url_for('main.connected') }}#map" class="btn btn--line-light btn--sm getting-here__link"><span class="btn__label">Back to the map</span></a>
+  </div>
+</section>
+{% endif %}
+
+<section class="next-island-wrap">
+  <a href="{{ url_for('main.island_detail', slug=next_island.slug) }}" class="next-island" data-cursor="Next">
+    <img class="next-island__img" src="{{ img('island.' ~ next_island.slug ~ '.hero') }}" alt="" loading="lazy" width="1400" height="933">
+    <span class="next-island__overlay" aria-hidden="true"></span>
+    <span class="shell next-island__content">
+      <span class="eyebrow eyebrow--light">NEXT ISLAND</span>
+      <span class="next-island__name">{{ next_island.name }}</span>
+      <span class="next-island__line">{{ next_island.headline }}</span>
+    </span>
+  </a>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/island.js') }}" defer></script>
+{% endblock %}

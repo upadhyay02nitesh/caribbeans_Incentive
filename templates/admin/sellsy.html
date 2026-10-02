@@ -1,0 +1,103 @@
+{% extends "admin/base_admin.html" %}
+{% from "admin/_pager.html" import toolbar, pager with context %}
+{% block title %}Sellsy — Admin — {{ brand }}{% endblock %}
+
+{% set status_labels = {'open': 'Open', 'late': 'Late', 'won': 'Won', 'lost': 'Lost', 'closed': 'Closed'} %}
+{% set status_badges = {'open': 'new', 'late': 'contacted', 'won': 'won', 'lost': 'lost', 'closed': 'qualified'} %}
+
+{% block admin_content %}
+<div class="admin-header rise">
+  <div>
+    <span class="eyebrow">CRM</span>
+    <h1>Sellsy <em>pipeline</em></h1>
+    <p class="admin-header__lede">
+      {% if data %}{{ data.pipeline }} — live from Sellsy, synced {{ 'just now' if age < 10 else (age|int ~ 's ago' if age < 90 else (age // 60)|int ~ ' min ago') }}.{% else %}Connecting to Sellsy…{% endif %}
+    </p>
+  </div>
+  <div class="admin-header__actions">
+    <a href="{{ url_for('admin.sellsy_pipeline', refresh=1) }}" class="btn"><i class="bi bi-arrow-repeat"></i> Sync now</a>
+    <a href="https://www.sellsy.com/" class="btn btn--gold" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Open Sellsy</a>
+  </div>
+</div>
+
+{% if error and not data %}
+  <section class="panel rise"><p class="panel__sub"><i class="bi bi-exclamation-triangle"></i> Couldn't reach Sellsy: {{ error }}</p></section>
+{% elif not data %}
+  <section class="panel rise"><p class="panel__sub"><i class="bi bi-hourglass-split"></i> Fetching the pipeline from Sellsy — this page refreshes in a moment.</p></section>
+  <script>setTimeout(function () { location.reload(); }, 2500);</script>
+{% else %}
+
+<div class="grid grid--kpi">
+  <div class="panel kpi kpi--feature rise" style="--i:1;min-height:0">
+    <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-gem"></i></span> Open pipeline</span>
+    <div class="kpi__value">{{ data.open_value|eur }}</div>
+    <span class="kpi__note" style="margin-top:10px">{{ data.weighted_value|eur }} weighted by stage</span>
+  </div>
+  <div class="panel kpi rise" style="--i:2;min-height:0">
+    <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-kanban"></i></span> Open opportunities</span>
+    <div class="kpi__value" data-count="{{ data.open_count }}">{{ data.open_count }}</div>
+    <span class="kpi__note" style="margin-top:10px">{{ data.total }} in the pipeline overall</span>
+  </div>
+  <div class="panel kpi rise" style="--i:3;min-height:0">
+    <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-globe2"></i></span> From the website</span>
+    <div class="kpi__value" data-count="{{ data.website_count }}">{{ data.website_count }}</div>
+    <span class="kpi__note" style="margin-top:10px">Source: website quote form</span>
+  </div>
+  <div class="panel kpi rise" style="--i:4;min-height:0">
+    <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-trophy"></i></span> Won</span>
+    <div class="kpi__value" data-count="{{ data.won_count }}">{{ data.won_count }}</div>
+    <span class="kpi__note" style="margin-top:10px">{{ data.won_value|eur }} signed</span>
+  </div>
+</div>
+
+<section class="panel rise" style="--i:5">
+  <div class="panel__head">
+    <div><h2 class="panel__title">Open deals by stage</h2><p class="panel__sub">Open and late opportunities, valued in EUR</p></div>
+  </div>
+  <div class="stack" role="img" aria-label="Open pipeline value split by stage">
+    {% for s in data.stages if s.value %}<i style="--v:{{ s.value }};--c:{{ stage_colors[loop.index0 % stage_colors|length] }}" title="{{ s.name }} · {{ s.value|eur }}"></i>{% endfor %}
+  </div>
+  <ul class="stage-list">
+    {% for s in data.stages %}
+    <li><i style="--c:{{ stage_colors[loop.index0 % stage_colors|length] }}"></i> {{ s.name }} <span class="muted" style="font-size:12px">{{ s.probability }}%</span> <b>{{ s.value|eur if s.value else '—' }}</b><em>{{ s.count }}</em></li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="panel panel--flush rise" style="--i:6">
+  {{ toolbar(chips, status, q, 'Search opportunities, companies, emails…', chips_total) }}
+  <div class="table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr><th>Opportunity</th><th>Company / contact</th><th>Stage</th><th class="num">Amount</th><th>Source</th><th>Status</th><th>Created</th></tr>
+      </thead>
+      <tbody>
+        {% for o in rows %}
+        <tr data-status="{{ status_labels.get(o.status, o.status|title) }}"
+            data-text="{{ [o.number, o.name, o.company, o.contact, o.email, o.step, o.source]|join(' ')|lower }}">
+          <td>
+            <div class="who__name">{{ o.name }}</div>
+            <div class="who__meta">{{ o.number }}</div>
+          </td>
+          <td>
+            <div class="who">
+              <span class="avatar" style="--h:{{ (o.id * 47) % 360 }}">{{ (o.company or o.name)|initials }}</span>
+              <div><div class="who__name">{{ o.company or '—' }}</div><div class="who__meta">{% if o.is_individual %}Individual{% else %}{{ o.contact }}{% endif %}{% if o.email %} · {{ o.email }}{% endif %}</div></div>
+            </div>
+          </td>
+          <td>{{ o.step }}</td>
+          <td class="num">{{ o.amount|eur if o.amount else '—' }}</td>
+          <td class="muted">{% if o.is_website %}<span class="badge badge--qualified">Website</span>{% else %}{{ o.source }}{% endif %}</td>
+          <td><span class="badge badge--{{ status_badges.get(o.status, 'new') }}">{{ status_labels.get(o.status, o.status|title) }}</span></td>
+          <td class="muted">{{ o.created }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="muted" style="text-align:center;padding:40px">{{ 'No opportunities match this filter.' if (q or status) else 'No opportunities in this pipeline yet.' }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {{ pager(p, 'opportunities') }}
+</section>
+{% endif %}
+{% endblock %}

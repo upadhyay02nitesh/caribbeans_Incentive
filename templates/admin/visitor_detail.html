@@ -1,0 +1,96 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{{ visitor.label }} — Admin — {{ brand }}{% endblock %}
+
+{% block admin_content %}
+{% set level, stars = engagement_level(visitor) %}
+{% set score = [((visitor.pages_viewed + visitor.sessions * 2) / 27 * 100)|round|int, 100]|min %}
+
+<a href="{{ url_for('admin.visitors') }}" class="admin-back-link rise"><i class="bi bi-arrow-left"></i> All visitors</a>
+
+<div class="admin-header rise" style="--i:1">
+  <div class="profile-hero">
+    <span class="avatar avatar--lg" style="--h:{{ (visitor.id * 47) % 360 }}">{{ (visitor.company or visitor.name or visitor.city)|initials }}</span>
+    <div>
+      <span class="eyebrow">{{ visitor.label }}</span>
+      <h1>{{ visitor.company or visitor.name or 'Anonymous visitor' }}</h1>
+      <p><i class="bi bi-geo-alt"></i> {{ visitor.city }}, {{ visitor.country }} · via {{ visitor.source }}</p>
+    </div>
+  </div>
+  <div class="admin-header__actions" style="align-items:center">
+    <span class="badge badge--lg badge--{{ visitor.status|lower|replace(' ', '-') }}">{{ visitor.status }}</span>
+    {% if visitor.email %}<a class="btn btn--gold" href="mailto:{{ visitor.email }}"><i class="bi bi-envelope"></i> Email</a>{% endif %}
+  </div>
+</div>
+
+<div class="grid grid--5-7">
+  <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
+    <section class="panel rise" style="--i:2">
+      <div class="panel__head"><div><h2 class="panel__title">Interest score</h2><p class="panel__sub">Pages viewed + return sessions</p></div></div>
+      <div class="score">
+        <div class="ring" data-ring="{{ score }}">
+          <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="ring__track" cx="50" cy="50" r="42" fill="none" stroke-width="7"/><circle class="ring__bar" cx="50" cy="50" r="42" fill="none" stroke-width="7"/></svg>
+          <span class="ring__label">{{ score }}</span>
+        </div>
+        <div>
+          <span class="meter meter--{{ level|lower }}"><span class="meter__bars"><i></i><i></i><i></i></span>{{ level }} interest</span>
+          <p class="panel__sub" style="margin-top:8px">{{ visitor.pages_viewed }} pages across {{ visitor.sessions }} session{{ 's' if visitor.sessions != 1 }}. Spent the most time in the <strong style="color:var(--a-text)">{{ visitor.top_module }}</strong>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel rise" style="--i:3">
+      <div class="panel__head"><h2 class="panel__title">Profile</h2></div>
+      <dl class="facts" style="margin:0">
+        <div><dt>Email</dt><dd title="{{ visitor.email }}">{{ visitor.email or 'Not captured yet' }}</dd></div>
+        {% if visitor.name %}<div><dt>Name</dt><dd>{{ visitor.name }}</dd></div>{% endif %}
+        <div><dt>Device</dt><dd>{{ visitor.device }} · {{ visitor.browser or '—' }} on {{ visitor.os or '—' }}</dd></div>
+        <div><dt>Network</dt><dd title="{{ visitor.ip }}">{{ visitor.network or '—' }}</dd></div>
+        <div><dt>Landing page</dt><dd>{{ visitor.landing_page or '—' }}</dd></div>
+        <div><dt>First seen</dt><dd>{{ visitor.first_seen }}</dd></div>
+        <div><dt>Last seen</dt><dd>{{ visitor.last_seen }}</dd></div>
+        <div><dt>Sessions</dt><dd>{{ visitor.sessions }}</dd></div>
+        <div><dt>Pages viewed</dt><dd>{{ visitor.pages_viewed }}</dd></div>
+      </dl>
+    </section>
+
+    <section class="panel rise {{ 'kpi--feature' if brief }}" style="--i:4">
+      <div class="panel__head"><div><h2 class="panel__title">Converted brief</h2>{% if brief %}<p class="panel__sub">#{{ brief.id }} · {{ brief.submitted_at }}</p>{% endif %}</div>
+        {% if brief %}<span class="badge badge--{{ brief.status|lower|replace(' ', '-') }}">{{ brief.status }}</span>{% endif %}
+      </div>
+      {% if brief %}
+        <div class="big-number">{{ brief_value|money if brief_value else brief.budget }}</div>
+        <p class="panel__sub" style="margin:6px 0 16px">{{ brief.budget }} budget band</p>
+        <dl class="facts" style="margin:0">
+          <div><dt>Request</dt><dd>{{ brief.request_type }}</dd></div>
+          <div><dt>Group size</dt><dd>{{ brief.group_size }} guests</dd></div>
+          <div><dt>Contact</dt><dd>{{ brief.contact_name }}</dd></div>
+          <div><dt>Country</dt><dd>{{ brief.country }}</dd></div>
+        </dl>
+      {% else %}
+        <p class="panel__sub"><i class="bi bi-hourglass-split"></i> {% if visitor.converted_reference %}Sent {{ 'an RFP' if visitor.converted_kind == 'rfp' else 'a callback request' if visitor.converted_kind == 'callback' else 'a brief' }} — {{ visitor.converted_reference }}.{% else %}No event brief submitted yet.{% endif %}</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <section class="panel rise" style="--i:3">
+    <div class="panel__head">
+      <div><h2 class="panel__title">Where their attention went</h2><p class="panel__sub">Time each interactive module was on screen</p></div>
+    </div>
+    <ol class="rank">
+      {% for a in visitor.attention %}
+      <li class="rank__row">
+        <span class="rank__name"><span class="rank__no">0{{ loop.index }}</span><span>{{ a.module }}</span></span>
+        <span class="rank__val">{{ a.time }}<small>{{ a.pct }}%</small></span>
+        <span class="rank__bar"><i style="--w:{{ a.pct }}%;--c:{{ 'var(--a-gold)' if loop.first else 'var(--s1)' }}"></i></span>
+      </li>
+      {% else %}
+      <li class="panel__sub">No module time recorded yet.</li>
+      {% endfor %}
+    </ol>
+    <dl class="facts" style="margin:24px 0 0">
+      <div><dt>Last page</dt><dd>{{ visitor.last_title or visitor.last_page or '—' }}</dd></div>
+      <div><dt>Opened Connect</dt><dd>{{ 'Yes' if visitor.saw_connect else 'Not yet' }}</dd></div>
+    </dl>
+  </section>
+</div>
+{% endblock %}

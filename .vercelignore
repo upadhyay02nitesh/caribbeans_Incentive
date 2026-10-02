@@ -1,0 +1,14 @@
+venv/
+instance/
+__pycache__/
+*.pyc
+.env
+scripts/
+*.pdf
+*.csv
+IMG-*.jpg
+*-removebg-preview.png
+CLAUDE.md
+CLAUDE_CODE_BUILD_PROMPT.md
+!knowledge/*.pdf
+!knowledge/*.csv

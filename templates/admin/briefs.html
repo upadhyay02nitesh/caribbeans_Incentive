@@ -1,0 +1,63 @@
+{% extends "admin/base_admin.html" %}
+{% from "admin/_status.html" import status_form, alerts with context %}
+{% from "admin/_pager.html" import toolbar, pager with context %}
+{% block title %}Event Briefs — Admin — {{ brand }}{% endblock %}
+
+{% block admin_content %}
+{% set stage_colors = {'New': 'var(--a-lagoon-2)', 'Contacted': 'var(--a-gold)', 'Qualified': 'var(--a-sky)', 'Won': 'var(--a-good)', 'Lost': '#F29A86'} %}
+
+<div class="admin-header rise">
+  <div>
+    <span class="eyebrow">Pipeline</span>
+    <h1>Event <em>briefs</em></h1>
+    <p class="admin-header__lede">{{ briefs_total }} brief{{ 's' if briefs_total != 1 }} worth {{ summary.pipeline_value|money }} in open and won business, valued at each budget band's midpoint.</p>
+  </div>
+</div>
+
+<div class="stages">
+  {% for s in stages %}
+  <div class="stage rise" style="--i:{{ loop.index }};--c:{{ stage_colors[s.stage] }}">
+    <div class="stage__name"><span>{{ s.stage }}</span><span>{{ s.count }}</span></div>
+    <div class="stage__value">{{ s.value|money if s.value else '—' }}</div>
+    <div class="stage__count">{{ s.count }} brief{{ 's' if s.count != 1 }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<section class="panel panel--flush rise" style="--i:6">
+  <div class="panel__head">
+    <div><h2 class="panel__title">All briefs</h2><p class="panel__sub">Newest first</p></div>
+  </div>
+  {{ toolbar(chips, status, q, 'Search company, contact, email…', chips_total) }}
+  <div class="table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr><th>Company</th><th>Contact</th><th>Request</th><th class="num">Guests</th><th>Budget</th><th class="num">Est. value</th><th>Alerts</th><th>Status</th><th>Submitted</th></tr>
+      </thead>
+      <tbody>
+        {% for b in briefs %}
+        <tr>
+          <td>
+            <div class="who">
+              <span class="avatar" style="--h:{{ (b.id * 47) % 360 }}">{{ b.company|initials }}</span>
+              <div><div class="who__name">{{ b.company }}</div><div class="who__meta">{{ b.reference or "#" ~ b.id }} · {{ b.country }}</div></div>
+            </div>
+          </td>
+          <td>{{ b.contact_name }}<div class="who__meta"><a href="mailto:{{ b.email }}">{{ b.email }}</a></div></td>
+          <td>{{ b.request_type }}{% if b.preferred_dates %}<div class="who__meta">{{ b.preferred_dates }}</div>{% endif %}{% if b.message %}<div class="brief-note" title="{{ b.message }}">“{{ b.message|truncate(70) }}”</div>{% endif %}</td>
+          <td class="num">{{ b.group_size }}</td>
+          <td class="muted">{{ b.budget }}</td>
+          <td class="num"><strong>{{ brief_value(b)|money if brief_value(b) else '—' }}</strong></td>
+          <td>{{ alerts(b.emailed, b.whatsapped) }}</td>
+          <td>{% if b.reference %}{{ status_form("brief", b.reference, b.status) }}{% else %}<span class="badge badge--{{ b.status|lower }}">{{ b.status }}</span>{% endif %}</td>
+          <td class="muted">{{ b.submitted_at }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="muted" style="text-align:center;padding:40px">{{ 'No briefs match this filter.' if (q or status) else 'No event briefs yet.' }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {{ pager(p, 'briefs') }}
+</section>
+{% endblock %}

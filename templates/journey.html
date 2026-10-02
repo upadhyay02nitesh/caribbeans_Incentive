@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% from "partials/section_head.html" import page_hero %}
+{% block title %}Your Caribbean Journey · {{ brand }}{% endblock %}
+{% block body_class %}page-journey{% endblock %}
+
+{% block content %}
+{{ page_hero('experience.curated-experiences.1', 'YOUR CARIBBEAN JOURNEY', 'Endless Creations', index='V') }}
+
+<section class="chapters">
+  <div class="shell chapters__grid">
+    <aside class="chapters__index">
+      <nav class="chapters__sticky" aria-label="Experience chapters">
+        <span class="eyebrow">{{ experiences|length }} chapters</span>
+        <ol>
+          {% for exp in experiences %}
+            <li><a href="#{{ exp.slug }}" class="chapters__link {{ 'is-active' if loop.first }}" data-chapter-link="{{ exp.slug }}" data-scroll-to><span>{{ '%02d' % loop.index }}</span>{{ exp.title }}</a></li>
+          {% endfor %}
+        </ol>
+      </nav>
+    </aside>
+
+    <div class="chapters__body">
+      {% for exp in experiences %}
+        <article class="chapter" id="{{ exp.slug }}" data-chapter>
+          <header class="chapter__head">
+            <span class="chapter__num" aria-hidden="true">{{ '%02d' % loop.index }}</span>
+            <h2 class="display-2" data-split>{{ exp.title }}</h2>
+          </header>
+          <div class="chapter__text prose">
+            {% for p in exp.body[:1] %}<p data-reveal class="{{ 'chapter__lead' if loop.first }}">{{ p | md_bold }}</p>{% endfor %}
+          </div>
+          <div class="mosaic mosaic--v{{ loop.index0 % 3 }}">
+            {% for i in range(1, 4) %}
+              <figure class="mosaic__item mosaic__item--{{ i }}" data-clip>
+                <img src="{{ img('experience.' ~ exp.slug ~ '.' ~ i) }}" alt="{{ exp.title }} · image {{ i }}" loading="lazy" width="1400" height="933" data-parallax="{{ [6, -6, 10, -4, 8, -8][i - 1] }}">
+              </figure>
+            {% endfor %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chapters.js') }}" defer></script>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% set src_total = traffic_sources|sum(attribute='visitors') %}
+<div class="donut" data-donut='{{ traffic_sources|tojson }}' data-label="Traffic sources">
+  <div class="donut__plot">
+    <div class="donut__center"><strong>{{ src_total }}</strong><span>visitors</span></div>
+  </div>
+  <ul class="donut__list">
+    {% for s in traffic_sources %}
+    <li><i style="--c:var(--s{{ loop.index }})"></i>{{ s.source }}<b>{{ s.visitors }}</b><em>{{ (s.visitors / src_total * 100)|round|int if src_total else 0 }}%</em></li>
+    {% else %}
+    <li class="muted">No traffic yet</li>
+    {% endfor %}
+  </ul>
+</div>

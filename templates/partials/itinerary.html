@@ -1,0 +1,46 @@
+<section class="itinerary" id="itinerary">
+  <div class="shell">
+    <div class="itinerary__head">
+      <div class="section-head">
+        <div class="section-head__meta" data-reveal>
+          <span class="section-head__index">01</span>
+          <span class="eyebrow">{{ itinerary_kicker }}</span>
+        </div>
+        <h2 class="display-2" data-split>{{ envision_content.itinerary_subhead }}</h2>
+      </div>
+    </div>
+
+    <div class="itin-tabs" id="itin-tabs" role="tablist" aria-label="Sample itinerary days" data-reveal>
+      {% for day, title, desc in itinerary %}
+        <button type="button" class="itin-tab {{ 'is-active' if loop.first }}" data-index="{{ loop.index0 }}" role="tab" aria-selected="{{ 'true' if loop.first else 'false' }}" aria-controls="itin-panel">
+          <span class="itin-tab__day">{{ day }}</span>
+          <span class="itin-tab__title">{{ title }}</span>
+        </button>
+      {% endfor %}
+      <span class="itin-tabs__rail" aria-hidden="true"><span class="itin-tabs__fill" id="itin-fill"></span></span>
+    </div>
+
+    <div class="itin-panel" id="itin-panel" role="tabpanel" data-reveal>
+      <div class="itin-panel__img-wrap">
+        <img id="itin-img" src="{{ img('itinerary.day1') }}" alt="Day 1" loading="lazy" width="1400" height="933">
+        <span class="itin-panel__big" id="itin-big" aria-hidden="true">01</span>
+      </div>
+      <div class="itin-panel__body">
+        <span class="eyebrow" id="itin-day">{{ itinerary[0][0] }}</span>
+        <h3 class="display-3" id="itin-title">{{ itinerary[0][1] }}</h3>
+        <p id="itin-desc">{{ itinerary[0][2] }}</p>
+        <div class="itin-panel__nav">
+          <button type="button" class="circle-btn" data-itin-step="-1" aria-label="Previous day">←</button>
+          <button type="button" class="circle-btn" data-itin-step="1" aria-label="Next day">→</button>
+          <a href="#estimator" class="itin-panel__cta link-arrow" data-scroll-to>Get a Planning Estimate <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </div>
+
+    <p class="fine-print">{{ itinerary_note }}</p>
+  </div>
+</section>
+
+<script id="itinerary-data" type="application/json">
+{{ itinerary_json | safe }}
+</script>

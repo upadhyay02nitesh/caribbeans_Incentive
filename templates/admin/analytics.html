@@ -1,0 +1,93 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Analytics — Admin — {{ brand }}{% endblock %}
+
+{% block admin_content %}
+<script type="application/json" id="admin-chart-data">{{ chart_json|safe }}</script>
+{% set funnel_top = [conversion_funnel[0].count, 1]|max %}
+{% set top_island = [island_page_views[0].views, 1]|max %}
+
+<div class="admin-header rise">
+  <div>
+    <span class="eyebrow">Insights</span>
+    <h1>How guests <em>explore</em></h1>
+    <p class="admin-header__lede">Live traffic, attention and intent across the interactive modules and seven destinations — {{ data_window }}.</p>
+  </div>
+</div>
+
+<div class="grid grid--kpi">
+  <div class="panel kpi rise" style="--i:1;min-height:0">
+    <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-eye"></i></span> Sessions · 14 days</span>
+    <div class="kpi__value" data-count="{{ summary.sessions_14d }}">{{ summary.sessions_14d }}</div>
+    <span class="kpi__note" style="margin-top:10px">{% if summary.sessions_delta is not none %}<span class="delta">{{ '+' if summary.sessions_delta > 0 }}{{ summary.sessions_delta }}%</span> week on week{% endif %}</span>
+  </div>
+  <div class="panel kpi rise" style="--i:2;min-height:0">
+    <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-hourglass-split"></i></span> Avg. session</span>
+    <div class="kpi__value">{{ summary.quick_stats.avg_session_duration }}</div>
+    <span class="kpi__note" style="margin-top:10px">Bounce rate {{ summary.quick_stats.bounce_rate }}%</span>
+  </div>
+  <div class="panel kpi rise" style="--i:3;min-height:0">
+    <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-lightning-charge"></i></span> Top module</span>
+    <div class="kpi__value" style="font-size:30px">{{ summary.top_module.module }}</div>
+    <span class="kpi__note" style="margin-top:10px">{{ summary.top_module.engagement_rate }}% engagement</span>
+  </div>
+  <div class="panel kpi kpi--feature rise" style="--i:4;min-height:0">
+    <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-bullseye"></i></span> Visit → brief</span>
+    <div class="kpi__value" data-count="{{ summary.site_conversion }}" data-decimals="1" data-suffix="%">{{ summary.site_conversion }}%</div>
+    <span class="kpi__note" style="margin-top:10px">{{ conversion_funnel[-1].count }} of {{ conversion_funnel[0].count }} visitors</span>
+  </div>
+</div>
+
+<div class="grid grid--2-1">
+  <section class="panel rise" style="--i:5">
+    <div class="panel__head">
+      <div><h2 class="panel__title">Daily sessions</h2><p class="panel__sub">{{ data_window }} · hover for detail</p></div>
+    </div>
+    <div class="chart" data-area></div>
+  </section>
+  <section class="panel rise" style="--i:6">
+    <div class="panel__head"><div><h2 class="panel__title">Traffic sources</h2><p class="panel__sub">Share of visitors</p></div></div>
+    {% include 'admin/_donut.html' %}
+  </section>
+</div>
+
+<div class="grid grid--1-1">
+  <section class="panel rise" style="--i:7">
+    <div class="panel__head"><div><h2 class="panel__title">Conversion funnel</h2><p class="panel__sub">Share of all visitors reaching each step</p></div></div>
+    <ol class="funnel">
+      {% for f in conversion_funnel %}
+      {% set pct = f.count / funnel_top * 100 %}
+      <li style="--w:{{ [pct, 1.5]|max|round(1) }}%;--i:{{ loop.index0 }}">
+        <span>{{ f.stage }}</span>
+        <b>{{ f.count }}<small>{{ pct|round(1) }}%</small></b>
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <section class="panel rise" style="--i:8">
+    <div class="panel__head"><div><h2 class="panel__title">Module engagement</h2><p class="panel__sub">Interaction rate · views · average time</p></div></div>
+    <ol class="rank">
+      {% for m in module_stats|sort(attribute='engagement_rate', reverse=true) %}
+      <li class="rank__row">
+        <span class="rank__name"><span class="rank__no">0{{ loop.index }}</span><span>{{ m.module }}</span></span>
+        <span class="rank__val">{{ m.engagement_rate }}%<small>{{ '{:,}'.format(m.views) }} views · {{ m.avg_time_sec }}s</small></span>
+        <span class="rank__bar"><i style="--w:{{ m.engagement_rate }}%;--c:{{ 'var(--a-gold)' if loop.first else 'var(--s1)' }}"></i></span>
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+</div>
+
+<section class="panel rise" style="--i:9">
+  <div class="panel__head"><div><h2 class="panel__title">Destination interest</h2><p class="panel__sub">Island page views, all seven destinations</p></div></div>
+  <ol class="rank" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px 36px">
+    {% for isle in island_page_views %}
+    <li class="rank__row">
+      <span class="rank__name"><img class="rank__thumb" src="{{ img('island.' ~ isle.slug ~ '.card') }}" alt="" loading="lazy"><span>{{ isle.island }}</span></span>
+      <span class="rank__val">{{ isle.views }}</span>
+      <span class="rank__bar"><i style="--w:{{ (isle.views / top_island * 100)|round(1) }}%;--c:var(--s1)"></i></span>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endblock %}

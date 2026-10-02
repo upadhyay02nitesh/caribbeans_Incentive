@@ -1,0 +1,44 @@
+{% macro section_head(kicker, heading, lede=None, on_dark=False, index=None, tag='h2') %}
+<div class="section-head {{ 'section-head--dark' if on_dark }}">
+  <div class="section-head__meta" data-reveal>
+    {% if index %}<span class="section-head__index">{{ index }}</span>{% endif %}
+    {% if kicker %}<span class="eyebrow {{ 'eyebrow--light' if on_dark }}">{{ kicker }}</span>{% endif %}
+  </div>
+  <{{ tag }} class="display-2" data-split>{{ heading }}</{{ tag }}>
+  {% if lede %}<p class="lede" data-reveal>{{ lede }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro page_hero(image_key, kicker, heading, lede=None, index=None, align='bottom') %}
+<section class="page-hero page-hero--{{ align }}" data-page-hero>
+  <div class="page-hero__media">
+    <img src="{{ img(image_key) }}" alt="" width="1920" height="1280" fetchpriority="high" data-hero-img>
+  </div>
+  <div class="page-hero__shade" aria-hidden="true"></div>
+  <div class="shell page-hero__content">
+    <div class="page-hero__meta hero-rise" style="--d:.2s">
+      {% if index %}<span class="page-hero__index">{{ index }}</span>{% endif %}
+      <span class="eyebrow eyebrow--light">{{ kicker }}</span>
+    </div>
+    <h1 class="display-1 hero-lines">{% for line in heading.split('\n') %}<span class="hero-lines__line"><span style="--d: {{ loop.index0 * 0.12 + 0.3 }}s">{{ line }}</span></span>{% endfor %}</h1>
+    {% if lede %}<p class="page-hero__lede hero-rise" style="--d:.75s">{{ lede }}</p>{% endif %}
+  </div>
+  <a href="#page-start" class="scroll-cue hero-rise" style="--d:1s" data-scroll-to>
+    <span class="scroll-cue__line" aria-hidden="true"></span><span>Scroll</span>
+  </a>
+</section>
+<div id="page-start"></div>
+{% endmacro %}
+
+{% macro cta_band(heading, image_key, button_label, endpoint) %}
+<section class="cta-band" data-cta-band>
+  <div class="cta-band__media" aria-hidden="true">
+    <img src="{{ img(image_key) }}" alt="" loading="lazy" width="1920" height="1280" data-parallax="-12">
+  </div>
+  <div class="cta-band__shade" aria-hidden="true"></div>
+  <div class="shell cta-band__content">
+    <h2 class="display-1" data-split>{{ heading }}</h2>
+    <a href="{{ url_for(endpoint) }}" class="btn btn--gold btn--lg" data-magnetic data-reveal><span class="btn__label">{{ button_label }}</span><span class="btn__arrow" aria-hidden="true">→</span></a>
+  </div>
+</section>
+{% endmacro %}

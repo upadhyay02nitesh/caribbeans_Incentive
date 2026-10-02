@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% from "partials/section_head.html" import section_head %}
+{% block title %}{{ brand }} · {{ tagline }}{% endblock %}
+{% block body_class %}page-home{% endblock %}
+
+{% block content %}
+{% include "partials/hero_video.html" %}
+
+{# ── 01 · Intro statement + welcome ──────────────────────────────────── #}
+<section class="intro">
+  <div class="shell">
+    <h2 class="intro__statement" data-split>{{ intro.h2 }}</h2>
+    <div class="intro__grid">
+      <div class="intro__copy">
+        {% for p in intro.paragraphs %}
+          <p class="{{ 'intro__lead' if loop.first else 'intro__text' }}" data-reveal style="--rd: {{ loop.index0 * 0.08 }}s">{{ p }}</p>
+        {% endfor %}
+      </div>
+      <div class="intro__stack" data-tilt>
+        <figure class="intro__shot intro__shot--back" data-reveal>
+          <img src="{{ img('island.st-barth.hero') }}" alt="A Caribbean terrace above the bay" loading="lazy" width="1000" height="1000" data-parallax="5">
+        </figure>
+        <figure class="intro__shot intro__shot--front" data-reveal style="--rd: .16s">
+          <img src="{{ img('island.anguilla.hero') }}" alt="Turquoise shallows off a Caribbean cay" loading="lazy" width="1000" height="700" data-parallax="-7">
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── 02 · Where it all begins — expanding media ─────────────────────── #}
+<section class="expand" data-expand>
+  <div class="expand__stage">
+    <div class="expand__media">
+      <img src="{{ img('island.saint-martin.the-island') }}" alt="" loading="lazy" width="1400" height="933">
+      <div class="expand__shade"></div>
+    </div>
+    <div class="shell expand__content">
+      <div class="section-head__meta section-head__meta--light">
+        <span class="section-head__index">02</span>
+        <span class="eyebrow eyebrow--light">{{ where_it_all_begins.kicker }}</span>
+      </div>
+      <h2 class="display-1">{{ where_it_all_begins.h2 }}</h2>
+      {% for p in where_it_all_begins.teaser_paragraphs[:1] %}<p class="expand__lede">{{ p }}</p>{% endfor %}
+      <a href="{{ url_for('main.where_it_all_begins') }}" class="btn btn--line-light" data-magnetic><span class="btn__label">Read our story</span><span class="btn__arrow" aria-hidden="true">→</span></a>
+    </div>
+  </div>
+</section>
+
+{# ── 03 · Explore our Caribbean — horizontal gallery ─────────────────── #}
+<section class="islands-rail" id="explore">
+  <div class="shell islands-rail__head">
+    {{ section_head('EXPLORE OUR ISLANDS', explore.h2, index='03') }}
+  </div>
+
+  <div class="islands-rail__stage islands-rail__stage--free" data-carousel>
+  <div class="shell islands-rail__hint" aria-hidden="true"><span>Drag or use the arrows</span><span>{{ islands|length }} destinations</span></div>
+  <div class="islands-rail__viewport" data-carousel-viewport>
+    <div class="islands-rail__track">
+      {% for isle in islands %}
+        <a href="{{ url_for('main.island_detail', slug=isle.slug) }}" class="rail-card" data-cursor="Discover">
+          <div class="rail-card__media">
+            <img src="{{ img('island.' ~ isle.slug ~ '.card') }}" alt="{{ isle.name }}" loading="lazy" width="1400" height="1712">
+          </div>
+          <div class="rail-card__top">
+            <span class="rail-card__num">{{ '%02d' % loop.index }}</span>
+            <span class="rail-card__access">{{ isle.access }}</span>
+          </div>
+          <div class="rail-card__bottom">
+            <h3 class="rail-card__name">{{ isle.name }}</h3>
+            <span class="rail-card__cta">Discover more <span aria-hidden="true">→</span></span>
+          </div>
+        </a>
+      {% endfor %}
+      <a href="{{ url_for('main.islands_index') }}" class="rail-card rail-card--end">
+        <span class="eyebrow">All destinations</span>
+        <span class="rail-card__end-title">View every island</span>
+        <span class="circle-arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+  <div class="shell islands-rail__controls">
+    <button type="button" class="rail-arrow" data-carousel-prev aria-label="Previous destinations">←</button>
+    <button type="button" class="rail-arrow" data-carousel-next aria-label="Next destinations">→</button>
+  </div>
+  </div>
+</section>
+
+{# ── 04 · What we do — image / copy / image triptych ────────────────── #}
+<section class="wwd" aria-labelledby="whatwedo-title">
+  <figure class="wwd__media" data-reveal data-slide="left">
+    <span class="wwd__slide"><img src="{{ img('hero_scene_2') }}" alt="Guests mingling at a corporate reception" loading="lazy" width="1400" height="933" data-parallax="8"></span>
+  </figure>
+  <div class="wwd__panel">
+    <span class="eyebrow eyebrow--light" data-reveal>{{ designed_around_you.kicker }}</span>
+    <h2 class="wwd__title" id="whatwedo-title" data-split>{{ designed_around_you.full_h2 }}</h2>
+    <p class="wwd__text" data-reveal style="--rd: .1s">{{ designed_around_you.teaser }}</p>
+    <a href="{{ url_for('main.designed_around_you') }}" class="btn btn--gold" data-magnetic data-reveal style="--rd: .2s"><span class="btn__label">Find out more</span><span class="btn__arrow" aria-hidden="true">→</span></a>
+  </div>
+  <figure class="wwd__media" data-reveal data-slide="right">
+    <span class="wwd__slide"><img src="{{ img('hero_scene_1') }}" alt="Private chauffeured arrival for guests" loading="lazy" width="1400" height="933" data-parallax="-8"></span>
+  </figure>
+</section>
+
+{# ── 05 · Experiences — Your Caribbean Journey ──────────────────────── #}
+<section class="welcome">
+  <div class="shell welcome__grid">
+    <div class="welcome__copy">
+      <span class="eyebrow" data-reveal>{{ experiences_home.kicker }}</span>
+      <h2 class="welcome__title" data-split>{{ experiences_home.h2 }}</h2>
+      <p class="welcome__lede" data-reveal style="--rd: .1s">{{ experiences_home.lede }}</p>
+      <a href="{{ url_for('main.journey') }}" class="link-arrow welcome__link" data-reveal style="--rd: .18s">Discover more <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="welcome__circles" data-drift="-14">
+      {% for exp in experiences %}
+        <a href="{{ url_for('main.journey') }}#{{ exp.slug }}" class="orb" data-reveal style="--rd: {{ loop.index0 * 0.06 }}s" data-cursor="View">
+          <span class="orb__img"><img src="{{ img('experience.' ~ exp.slug ~ '.1') }}" alt="" loading="lazy" width="300" height="300"></span>
+          <span class="orb__title">{{ exp.title }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ── 06 · Why choose the Caribbean — full-bleed scene ───────────────── #}
+<section class="possible">
+  <div class="possible__media">
+    <img src="{{ img('island.grenada.experiences') }}" alt="" loading="lazy" width="1920" height="1080" data-parallax="6">
+    <div class="possible__shade" aria-hidden="true"></div>
+  </div>
+  <div class="shell possible__inner">
+    <span class="eyebrow eyebrow--light" data-reveal>{{ endless_creations.kicker }}</span>
+    <h2 class="possible__title" data-split>{{ endless_creations.h2 }}</h2>
+    <p class="possible__text" data-reveal style="--rd: .1s">{{ endless_creations.teaser }}</p>
+    <a href="{{ url_for('main.endless_creations') }}" class="btn btn--pill" data-magnetic data-reveal style="--rd: .2s"><span class="btn__label">Read more</span></a>
+  </div>
+</section>
+
+{% include "partials/testimonials.html" %}
+
+{% include "partials/map_region.html" %}
+{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css') }}">{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/hero.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/map.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/testimonials.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/premium.js') }}" defer></script>
+{% endblock %}

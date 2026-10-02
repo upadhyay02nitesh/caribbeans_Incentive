@@ -1,0 +1,69 @@
+{% extends "admin/base_admin.html" %}
+{% from "admin/_pager.html" import toolbar, pager with context %}
+{% block title %}Visitors — Admin — {{ brand }}{% endblock %}
+
+{% block admin_content %}
+<div class="admin-header rise">
+  <div>
+    <span class="eyebrow">Relationships</span>
+    <h1>Visitors <em>&amp; prospects</em></h1>
+    <p class="admin-header__lede">Every browser that has visited the site, live from the database. Visitors are named once they send a brief, RFP or callback request.</p>
+  </div>
+</div>
+
+<div class="grid grid--kpi">
+  <div class="panel kpi rise" style="--i:1;min-height:0">
+    <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-people"></i></span> Tracked visitors</span>
+    <div class="kpi__value" data-count="{{ visitors_total }}">{{ visitors_total }}</div>
+  </div>
+  <div class="panel kpi rise" style="--i:2;min-height:0">
+    <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-stars"></i></span> New leads</span>
+    <div class="kpi__value" data-count="{{ status_counts['New Lead'] }}">{{ status_counts['New Lead'] }}</div>
+  </div>
+  <div class="panel kpi rise" style="--i:3;min-height:0">
+    <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-arrow-repeat"></i></span> Returning</span>
+    <div class="kpi__value" data-count="{{ status_counts['Returning'] }}">{{ status_counts['Returning'] }}</div>
+  </div>
+  <div class="panel kpi kpi--feature rise" style="--i:4;min-height:0">
+    <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-trophy"></i></span> Converted to brief</span>
+    <div class="kpi__value" data-count="{{ status_counts['Converted'] }}">{{ status_counts['Converted'] }}</div>
+  </div>
+</div>
+
+<section class="panel panel--flush rise" style="--i:5">
+  {{ toolbar(chips, status, q, 'Search visitors, companies, cities…', chips_total) }}
+  <div class="table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr><th>Visitor</th><th>Location</th><th>Source</th><th>Device</th><th class="num">Sessions</th><th>Top module</th><th>Interest</th><th>Status</th><th>Last seen</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for v in visitors %}
+        {% set level, stars = engagement_level(v) %}
+        <tr class="row-link" data-href="{{ url_for('admin.visitor_detail', visitor_id=v.id) }}" data-status="{{ v.status }}"
+            data-text="{{ [v.label, v.company, v.name or '', v.email, v.city, v.country, v.source, v.top_module]|join(' ')|lower }}">
+          <td>
+            <div class="who">
+              <span class="avatar" style="--h:{{ (v.id * 47) % 360 }}">{{ (v.company or v.name or v.city)|initials }}</span>
+              <div><div class="who__name">{{ v.company or v.name or 'Anonymous' }}</div><div class="who__meta">{{ v.label }}{% if v.email %} · {{ v.email }}{% endif %}</div></div>
+            </div>
+          </td>
+          <td>{{ v.city }}<div class="who__meta">{{ v.country }}</div></td>
+          <td class="muted">{{ v.source }}</td>
+          <td class="muted"><i class="bi bi-{{ 'phone' if v.device == 'Mobile' else 'tablet' if v.device == 'Tablet' else 'laptop' }}"></i> {{ v.device }}</td>
+          <td class="num">{{ v.sessions }}</td>
+          <td>{{ v.top_module }}</td>
+          <td><span class="meter meter--{{ level|lower }}" title="{{ v.pages_viewed }} pages, {{ v.sessions }} session{{ 's' if v.sessions != 1 }}"><span class="meter__bars"><i></i><i></i><i></i></span>{{ level }}</span></td>
+          <td><span class="badge badge--{{ v.status|lower|replace(' ', '-') }}">{{ v.status }}</span></td>
+          <td class="muted">{{ v.last_seen }}</td>
+          <td class="num"><i class="bi bi-arrow-right row-go"></i></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="10" class="muted" style="text-align:center;padding:40px"><i class="bi bi-broadcast"></i> {{ 'No visitors match this filter.' if (q or status) else 'No visitors recorded yet — they appear here as soon as someone opens the site.' }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {{ pager(p, 'visitors') }}
+</section>
+{% endblock %}

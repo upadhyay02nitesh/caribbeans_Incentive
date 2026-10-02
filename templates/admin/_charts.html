@@ -1,0 +1,22 @@
+{# Generic donut: items = [{'label', 'value', 'color'}]. Rendered by the donut() code in admin.js. #}
+{% macro donut(items, unit, aria) %}
+{% set total = items|sum(attribute='value') %}
+<div class="donut" data-donut='{{ items|tojson }}' data-label="{{ aria }}">
+  <div class="donut__plot">
+    <div class="donut__center"><strong>{{ total }}</strong><span>{{ unit }}</span></div>
+  </div>
+  <ul class="donut__list">
+    {% for d in items %}
+    <li><i style="--c:{{ d.color }}"></i>{{ d.label }}<b>{{ d.value }}</b><em>{{ (d.value / total * 100)|round|int if total else 0 }}%</em></li>
+    {% endfor %}
+  </ul>
+</div>
+{% endmacro %}
+
+{# Thin segmented bar under a workspace card. #}
+{% macro split(items) %}
+{% set total = items|sum(attribute='value') %}
+<div class="ws-split" role="img" aria-label="{% for d in items %}{{ d.label }} {{ d.value }}{{ ', ' if not loop.last }}{% endfor %}">
+  {% if total %}{% for d in items if d.value %}<i style="--v:{{ d.value }};--c:{{ d.color }}" title="{{ d.label }} · {{ d.value }}"></i>{% endfor %}{% else %}<i style="--v:1;--c:rgba(255,255,255,.08)"></i>{% endif %}
+</div>
+{% endmacro %}

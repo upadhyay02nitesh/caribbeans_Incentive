@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% from "partials/section_head.html" import page_hero, section_head %}
+{% block title %}Endless Creations · {{ brand }}{% endblock %}
+{% block body_class %}page-creations{% endblock %}
+
+{% block content %}
+{{ page_hero('island.grenada.experiences', content.kicker, content.h2, index='VI') }}
+
+<section class="story-lines">
+  <div class="shell">
+    <div class="section-head__meta" data-reveal>
+      <span class="section-head__index">01</span>
+      <span class="eyebrow">{{ content.story_h3 }}</span>
+    </div>
+    <div class="story-lines__list">
+      {% for line in content.story_paragraphs[0].split('. ')[:4] %}
+        <p class="story-lines__line" data-reveal style="--rd: {{ loop.index0 * 0.06 }}s"><span class="story-lines__no">{{ '%02d' % loop.index }}</span>{{ line.rstrip('.') }}.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="region dark">
+  <div class="region__media" aria-hidden="true">
+    <img src="{{ img('island.dominica.hero') }}" alt="" loading="lazy" width="1400" height="933" data-parallax="-10">
+  </div>
+  <div class="region__shade" aria-hidden="true"></div>
+  <div class="shell region__grid">
+    <div>
+      {{ section_head('WHY CHOOSE THE CARIBBEAN', content.region_h2, on_dark=True, index='02') }}
+    </div>
+    <div class="region__copy prose prose--light">
+      {% for p in content.region_paragraphs[:1] %}<p data-reveal>{{ p }}</p>{% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="exp-tiles">
+  <div class="shell">
+    {{ section_head('YOUR CARIBBEAN JOURNEY', 'Nine ways to live the islands', index='03') }}
+    <div class="exp-tiles__grid">
+      {% for exp in experiences %}
+        <a href="{{ url_for('main.journey') }}#{{ exp.slug }}" class="exp-tile exp-tile--{{ loop.index }}" data-reveal style="--rd: {{ (loop.index0 % 3) * 0.08 }}s" data-cursor="Read">
+          <span class="exp-tile__media"><img src="{{ img('experience.' ~ exp.slug ~ '.2') }}" alt="" loading="lazy" width="1400" height="933"></span>
+          <span class="exp-tile__shade" aria-hidden="true"></span>
+          <span class="exp-tile__num">{{ '%02d' % loop.index }}</span>
+          <span class="exp-tile__title">{{ exp.title }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="islands-rail islands-rail--compact" data-carousel>
+  <div class="shell islands-rail__head">
+    {{ section_head('EXPLORE OUR ISLANDS', 'Seven islands, one connection', index='04') }}
+  </div>
+  <div class="islands-rail__stage">
+  <div class="shell islands-rail__hint" aria-hidden="true"><span>Scroll to travel</span><span>{{ islands|length }} destinations</span></div>
+  <div class="islands-rail__viewport" data-carousel-viewport>
+    <div class="islands-rail__track">
+      {% for isle in islands %}
+        <a href="{{ url_for('main.island_detail', slug=isle.slug) }}" class="rail-card" data-cursor="Discover">
+          <div class="rail-card__media"><img src="{{ img('island.' ~ isle.slug ~ '.card') }}" alt="{{ isle.name }}" loading="lazy" width="1400" height="1712"></div>
+          <div class="rail-card__top"><span class="rail-card__num">{{ '%02d' % loop.index }}</span><span class="rail-card__access">{{ isle.access }}</span></div>
+          <div class="rail-card__bottom"><h3 class="rail-card__name">{{ isle.name }}</h3><span class="rail-card__cta">Discover more <span aria-hidden="true">→</span></span></div>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="shell islands-rail__controls">
+    <button type="button" class="rail-arrow" data-carousel-prev aria-label="Previous destinations">←</button>
+    <button type="button" class="rail-arrow" data-carousel-next aria-label="Next destinations">→</button>
+  </div>
+  </div>
+</section>
+
+{% endblock %}
