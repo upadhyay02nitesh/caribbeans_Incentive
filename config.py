@@ -21,11 +21,12 @@ class Config:
     # Sellsy
     SELLSY_CLIENT_ID = os.environ.get("SELLSY_CLIENT_ID", "")
     SELLSY_CLIENT_SECRET = os.environ.get("SELLSY_CLIENT_SECRET", "")
-    # Where website briefs land: pipeline "Tunnel de vente CARAIBES INCENTIVE",
-    # step "1er contact / prise de brief", source "Formulaire demande de devis site internet".
-    SELLSY_PIPELINE_ID = os.environ.get("SELLSY_PIPELINE_ID", "2")
-    SELLSY_STEP_ID = os.environ.get("SELLSY_STEP_ID", "6")
-    SELLSY_SOURCE_ID = os.environ.get("SELLSY_SOURCE_ID", "9")
+    # Where website briefs land, in Sellsy account 207533 (SAS CARAIBES INCENTIVE TRAVEL):
+    # pipeline "Enquiries pipeline", step "Incoming enquiry", source "Site Internet".
+    # IDs are per account; switching accounts means changing all three.
+    SELLSY_PIPELINE_ID = os.environ.get("SELLSY_PIPELINE_ID", "34")
+    SELLSY_STEP_ID = os.environ.get("SELLSY_STEP_ID", "34")
+    SELLSY_SOURCE_ID = os.environ.get("SELLSY_SOURCE_ID", "6")
     # Sellsy staff id that owns (and is assigned) new website leads. Blank = the API key's user.
     SELLSY_OWNER_ID = os.environ.get("SELLSY_OWNER_ID", "")
 
