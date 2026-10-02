@@ -100,7 +100,11 @@ def create_app(config_class=Config):
         # /admin is session-gated (login state, which user) - a shared browser
         # or edge cache serving a stale copy under this path would leak one
         # session's view to another, so it must never be cached.
-        if request.blueprint == "admin":
+        # Checked by path, not request.blueprint: Flask's automatic trailing-
+        # slash redirect (/admin -> /admin/) fires before the blueprint is
+        # resolved, so blueprint is None on that response and it slipped past
+        # the blueprint check with a cacheable default.
+        if request.path.startswith("/admin"):
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
         return response
 
