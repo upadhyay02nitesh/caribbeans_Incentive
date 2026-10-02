@@ -95,6 +95,15 @@ def create_app(config_class=Config):
             "current_year": datetime.now().year,
         }
 
+    @app.after_request
+    def no_store_admin(response):
+        # /admin is session-gated (login state, which user) - a shared browser
+        # or edge cache serving a stale copy under this path would leak one
+        # session's view to another, so it must never be cached.
+        if request.blueprint == "admin":
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+        return response
+
     @app.errorhandler(404)
     def not_found(e):
         return render_template("404.html"), 404
