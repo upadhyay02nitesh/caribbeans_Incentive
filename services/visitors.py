@@ -40,7 +40,7 @@ from urllib.parse import urlparse
 from flask import current_app, request
 
 from services.runtime import SERVERLESS
-from services.store import PREFIX, _connect, _dsn
+from services.store import AST, PREFIX, _connect, _dsn, query_batch
 
 logger = logging.getLogger(__name__)
 
@@ -452,6 +452,61 @@ def identify(kind, reference, fields):
         "email": str(lookup.get("e-mail") or ""),
         "at": datetime.now(timezone.utc),
     }))
+
+
+def lead_context(req, channel):
+    """(label, value) rows telling the CRM a lead came from the website: where,
+    how, when, and the visitor's journey before submitting (one read by cookie).
+    Never raises - a missing journey just means fewer rows."""
+    now = datetime.now(AST)
+    rows = [
+        ("Lead origin", f"Website · {(req.host or '').split(':')[0]}"),
+        ("Channel", channel),
+        ("Submitted", f"{now.day} {now:%b %Y, %H:%M} AST"),
+    ]
+    page = urlparse(req.referrer or "").path
+    if page:
+        rows.append(("Sent from page", page))
+    key = req.cookies.get(COOKIE, "")
+    if not re.fullmatch(r"[A-Za-z0-9_-]{16,64}", key):
+        return rows
+    try:
+        found = query_batch({"v": (
+            f"SELECT source, referrer, landing_page, sessions, pages_viewed, device, browser, os, "
+            f"city, region, country, first_seen, module_ms FROM {VISITORS} WHERE visitor_key = %s", (key,))})["v"]
+    except Exception:
+        logger.exception("Lead context: visitor lookup failed.")
+        return rows
+    if not found:
+        return rows
+    v = found[0]
+    source = v.get("source") or "Direct"
+    ref_host = urlparse(v.get("referrer") or "").hostname
+    rows.append(("Traffic source", f"{source} ({ref_host})" if ref_host and source != "Direct" else source))
+    if v.get("landing_page"):
+        rows.append(("Landing page", v["landing_page"]))
+    sessions, pages = v.get("sessions") or 1, v.get("pages_viewed") or 0
+    rows.append(("Visits", f"{sessions} visit{'s' if sessions != 1 else ''}, {pages} page{'s' if pages != 1 else ''} viewed"))
+    first = v.get("first_seen")
+    if isinstance(first, str):
+        try:
+            first = datetime.fromisoformat(first)
+        except ValueError:
+            first = None
+    if first:
+        first = first.astimezone(AST)
+        rows.append(("First visit", f"{first.day} {first:%b %Y}"))
+    place = ", ".join(dict.fromkeys(p for p in (v.get("city"), v.get("region"), v.get("country")) if p))
+    if place:
+        rows.append(("Location", place))
+    device = " · ".join(p for p in (v.get("device"), v.get("browser"), v.get("os")) if p)
+    if device:
+        rows.append(("Device", device))
+    module_ms = {m: float(ms) for m, ms in (v.get("module_ms") or {}).items() if float(ms) >= 1000}
+    if module_ms:
+        top = sorted(module_ms.items(), key=lambda kv: kv[1], reverse=True)[:3]
+        rows.append(("Most time on", ", ".join(f"{m} ({duration(ms / 1000)})" for m, ms in top)))
+    return rows
 
 
 # ---------------------------------------------------------------------------

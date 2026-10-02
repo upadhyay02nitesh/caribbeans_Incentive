@@ -49,6 +49,7 @@ def dispatch_brief(values, request=None, source="form"):
     whatsapped = send_inquiry_alert("brief", fields, reference)
     save_inquiry("brief", fields, reference, emailed, whatsapped, request)
     send_to_sellsy("brief", reference, fields,
+                   channel="Chat assistant (Project Assistant)" if source == "chat" else "Let's Connect form",
                    company=values.get("company"), contact_name=values.get("contact_name"),
                    email=values.get("email"), phone=values.get("phone"),
                    country=values.get("country"), request_type=values.get("request_type"),

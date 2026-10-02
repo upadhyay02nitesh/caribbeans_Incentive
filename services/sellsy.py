@@ -29,9 +29,10 @@ import urllib.request
 from datetime import datetime, timezone
 from html import escape
 
-from flask import current_app
+from flask import current_app, request
 
 from services.runtime import run_background
+from services.visitors import lead_context
 
 from content.admin_mock import BUDGET_MIDPOINTS
 
@@ -91,7 +92,7 @@ def _find_or_create_company(token, name, email, phone, country, owner_id=None):
         return match["id"]
     created = _call(token, "POST", "/companies", {
         "name": name, "type": "prospect", "email": email or None, "phone_number": phone or None,
-        "note": escape(f"Created from the website brief form. Country: {country or '—'}"),
+        "note": escape(f"Created from a website enquiry. Country: {country or '—'}"),
         **({"owner_id": owner_id} if owner_id else {}),
     })
     return created["id"]
@@ -124,10 +125,17 @@ def _find_or_create_contact(token, full_name, email, phone, company_id, owner_id
 KIND_TITLES = {"brief": "Event brief", "rfp": "RFP document", "callback": "Callback request"}
 
 
-def _note(kind, reference, fields):
-    rows = [("Website form", KIND_TITLES[kind]), ("Website reference", reference)] + list(fields)
-    return "".join(f"<p><strong>{escape(str(label))}:</strong> {escape(str(value))}</p>"
-                   for label, value in rows if value not in (None, ""))
+WEBSITE_TAG = "Website"
+
+
+def _note(kind, reference, fields, website=None):
+    """'From the website' block (origin, channel, visitor journey) above the form's own fields."""
+    def lines(rows):
+        return "".join(f"<p><strong>{escape(str(label))}:</strong> {escape(str(value))}</p>"
+                       for label, value in rows if value not in (None, ""))
+    head = [("Website form", KIND_TITLES[kind]), ("Website reference", reference)] + list(website or [])
+    return ("<p><strong>🌐 FROM THE WEBSITE</strong></p>" + lines(head)
+            + "<p><strong>FORM DETAILS</strong></p>" + lines(fields))
 
 
 def _attach(token, opportunity_id, attachment):
@@ -161,12 +169,13 @@ def _push(config, kind, payload, attachment=None):
     contact_id = _find_or_create_contact(token, person, payload.get("email"), payload.get("phone"), company_id,
                                          owner_id)
 
+    # 🌐 marks website leads at a glance in the pipeline (Sellsy names here already use emoji).
     if kind == "brief":
-        title = f"{company_name} — {payload.get('request_type') or 'Event brief'}"
+        title = f"🌐 {company_name} — {payload.get('request_type') or 'Event brief'}"
         if payload.get("group_size"):
             title += f" ({payload['group_size']} pax)"
     else:
-        title = f"{company_name} — {KIND_TITLES[kind]}"
+        title = f"🌐 {company_name} — {KIND_TITLES[kind]}"
     body = {
         "name": title,
         "pipeline": int(config["SELLSY_PIPELINE_ID"]),
@@ -174,13 +183,19 @@ def _push(config, kind, payload, attachment=None):
         "source": int(config["SELLSY_SOURCE_ID"]),
         "related": [{"type": "company", "id": company_id}],
         "contact_ids": [contact_id],
-        "note": _note(kind, payload.get("reference"), payload.get("fields", [])),
+        "note": _note(kind, payload.get("reference"), payload.get("fields", []), payload.get("website")),
     }
     if owner_id:
         body.update({"owner_id": owner_id, "assigned_staff_ids": [owner_id]})
     if kind == "brief":
         body["amount"] = str(BUDGET_MIDPOINTS.get(payload.get("budget"), 0))
     opportunity_id = _call(token, "POST", "/opportunities", body).get("id")
+
+    if opportunity_id:
+        try:  # filterable "Website" tag; a nicety, never fail the lead over it
+            _call(token, "POST", f"/opportunities/{opportunity_id}/smart-tags", [{"value": WEBSITE_TAG}])
+        except SellsyError as e:
+            logger.warning("Sellsy: could not tag opportunity %s: %s", opportunity_id, e)
 
     if attachment and opportunity_id:
         try:
@@ -193,7 +208,7 @@ def _push(config, kind, payload, attachment=None):
 # ---------------------------------------------------------------------------
 # Public entry points
 # ---------------------------------------------------------------------------
-def send_to_sellsy(kind, reference, fields, attachment=None, **extra):
+def send_to_sellsy(kind, reference, fields, attachment=None, channel="Let's Connect form", **extra):
     """Send one /lets-connect submission to Sellsy in the background.
 
     `fields` is the form's (label, value) list — the same one stored in
@@ -203,6 +218,10 @@ def send_to_sellsy(kind, reference, fields, attachment=None, **extra):
     Always returns True: failures are logged and archived locally.
     """
     payload = {"reference": reference, "fields": [(str(k), v) for k, v in fields], **extra}
+    try:  # read inside the request: needs its cookie, host and referrer
+        payload["website"] = lead_context(request, channel)
+    except Exception:
+        logger.exception("Sellsy: could not build the website context for %s.", reference)
     config = current_app.config
     if not config.get("SELLSY_CLIENT_ID") or not config.get("SELLSY_CLIENT_SECRET"):
         logger.info("Sellsy credentials not configured — logging %s %s locally.", kind, reference)
