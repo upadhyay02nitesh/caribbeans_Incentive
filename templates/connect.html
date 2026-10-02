@@ -46,17 +46,18 @@
         <span class="page-hero__index">VIII</span>
         <span class="eyebrow eyebrow--light">{{ nav_cta.label }}</span>
       </div>
-      <h1 class="connect__title hero-lines">
-        {% for line in content.h2.replace('. ', '.|').split('|') %}<span class="hero-lines__line"><span style="--d: {{ loop.index0 * 0.1 + 0.3 }}s">{{ line }}</span></span>{% endfor %}
-      </h1>
-      <div class="connect__copy hero-rise" style="--d:.8s">
-        <p>{{ content.paragraphs[0]|lead(2) }}</p>
-      </div>
+      <h1 class="visually-hidden">{{ nav_cta.label }}</h1>
 
-      <div class="contact-list hero-rise" style="--d:1s">
+      {% if contact.partner %}
+        <figure class="connect-portrait hero-rise" style="--d:.4s">
+          <img src="{{ img(contact.partner.image) }}" alt="Your Caribbean Incentive contact" width="1024" height="1024">
+        </figure>
+      {% endif %}
+
+      <div class="contact-list hero-rise" style="--d:.6s">
         <div class="contact-list__row">
           <span class="contact-list__label">E-MAIL</span>
-          <a href="mailto:{{ contact.email }}" class="contact-list__value link-line">{{ contact.email }}</a>
+          <a href="mailto:{{ contact.email }}" class="contact-list__value contact-list__value--nowrap link-line">{{ contact.email }}</a>
         </div>
         <div class="contact-list__row">
           <span class="contact-list__label">CALL US</span>
@@ -68,34 +69,7 @@
         </div>
       </div>
 
-      {% if contact.partner %}
-        <figure class="partner-card hero-rise" style="--d:1.15s">
-          <span class="partner-card__border" aria-hidden="true"></span>
-          <span class="partner-card__media">
-            <span class="partner-card__glow" aria-hidden="true"></span>
-            <span class="partner-card__frame">
-              <img src="{{ img(contact.partner.image) }}" alt="Your Caribbean Incentive contact" width="1024" height="1024" loading="lazy">
-            </span>
-            <span class="partner-card__badge" aria-hidden="true">
-              <img src="{{ img('brand.mark') }}" alt="" width="26" height="36">
-            </span>
-          </span>
-          <figcaption class="partner-card__text">
-            <span class="partner-card__eyebrow">{{ contact.partner.eyebrow }}</span>
-            <blockquote class="partner-card__line">{{ contact.partner.line }}</blockquote>
-            <span class="partner-card__actions">
-              <a href="mailto:{{ contact.email }}" class="partner-card__btn partner-card__btn--gold">
-                <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M3 6.5h18v11H3z M3 7l9 6.5L21 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Write to us
-              </a>
-              <a href="tel:{{ contact.phone|replace(' ', '') }}" class="partner-card__btn">
-                <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M6.6 3.5h3l1.5 4-2 1.3a11 11 0 0 0 6.1 6.1l1.3-2 4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Call us
-              </a>
-            </span>
-          </figcaption>
-        </figure>
-      {% endif %}
-
-      <a href="{{ url_for('static', filename='docs/caribbean-incentive-brochure.pdf') }}" target="_blank" rel="noopener" class="link-arrow hero-rise" style="--d:1.25s">Brochure <span aria-hidden="true">→</span></a>
+      <a href="{{ url_for('static', filename='docs/caribbean-incentive-brochure.pdf') }}" target="_blank" rel="noopener" class="link-arrow hero-rise" style="--d:.8s">Brochure <span aria-hidden="true">→</span></a>
     </div>
   </div>
 
