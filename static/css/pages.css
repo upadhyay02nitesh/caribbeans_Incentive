@@ -986,12 +986,31 @@ html.reveal-init .exp-tile:nth-child(3n+2)[data-reveal].is-in { transform: trans
    Let's Connect
    --------------------------------------------------------------------------- */
 .connect { display: grid; grid-template-columns: 5fr 7fr; min-height: 100vh; }
+/* Wide screens: give the intro room for the photo beside the contact details. */
+@media (min-width: 1500px) { .connect { grid-template-columns: 1fr 1fr; } }
 /* Same flat ivory as .connect__form on the right — no photo, both panels read
    as one continuous surface rather than a dark image beside a light form. */
 .connect__intro { position: relative; isolation: isolate; overflow: hidden; color: var(--text); background: var(--ivory); border-right: 1px solid var(--line); }
 .connect__intro-inner { position: sticky; top: 0; min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-start; gap: 32px; padding: 150px var(--pad) 56px; }
-.connect-portrait { margin: 0; width: clamp(180px, 17vw, 260px); aspect-ratio: 1; border-radius: 50%; overflow: hidden; box-shadow: 0 18px 40px -18px rgba(14, 27, 61, .45); }
-.connect-portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+/* Photo beside the contact details when the column is wide enough, stacked otherwise. */
+.connect__intro-inner { container-type: inline-size; }
+.connect-card { display: grid; gap: 36px; }
+.connect-portrait { position: relative; margin: 14px; width: clamp(220px, 60cqi, 320px); aspect-ratio: 1; }
+/* Side by side: photo capped at 40% of the column so the one-line e-mail
+   (about 300px) always fits beside it. */
+@container (min-width: 640px) {
+  .connect-card { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 48px; }
+  .connect-portrait { width: clamp(220px, 40cqi, 300px); }
+}
+.connect-portrait img { position: relative; z-index: 1; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: center top; display: block;
+  box-shadow: 0 24px 50px -22px rgba(14, 27, 61, .5); transition: transform .9s var(--ease-out); }
+.connect-portrait:hover img { transform: scale(1.03); }
+/* Thin gold ring with a dot that slowly orbits the photo. */
+.connect-portrait::before, .connect-portrait::after { content: ""; position: absolute; inset: -14px; border-radius: 50%; pointer-events: none; }
+.connect-portrait::before { border: 1px solid rgba(184, 130, 47, .38); }
+.connect-portrait::after { background: radial-gradient(circle at 50% 0, var(--gold) 0 4px, transparent 5px); animation: portrait-orbit 16s linear infinite; }
+@keyframes portrait-orbit { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .connect-portrait::after { animation: none; } }
 .connect__intro .page-hero__index { color: rgba(19, 34, 31, .45); border-right-color: var(--line); }
 .connect__title { font-family: var(--serif); font-style: normal; font-weight: 300; font-size: var(--h2); line-height: 1.06; letter-spacing: -.028em; color: var(--text); }
 .connect__title .hero-lines__line:last-child { color: var(--gold); }
