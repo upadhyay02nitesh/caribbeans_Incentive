@@ -331,12 +331,18 @@ def pipeline_snapshot(refresh=False):
     config = current_app.config
     if not config.get("SELLSY_CLIENT_ID") or not config.get("SELLSY_CLIENT_SECRET"):
         return None, None, "Sellsy is not configured."
+    settings = None
     with _snapshot_lock:
         stale = refresh or time.time() - _snapshot["fetched"] > SNAPSHOT_TTL
         if stale and not _snapshot["refreshing"]:
             _snapshot["refreshing"] = True
             settings = {k: config.get(k) for k in ("SELLSY_CLIENT_ID", "SELLSY_CLIENT_SECRET",
                                                   "SELLSY_PIPELINE_ID", "SELLSY_SOURCE_ID")}
-            run_background(_refresh_snapshot, settings, name="sellsy-snapshot")
+    # Must run outside the lock: on serverless run_background() is inline, and
+    # _refresh_snapshot() takes this same non-reentrant lock, so calling it while
+    # holding the lock deadlocked every /admin/ dashboard request on Vercel.
+    if settings is not None:
+        run_background(_refresh_snapshot, settings, name="sellsy-snapshot")
+    with _snapshot_lock:
         age = time.time() - _snapshot["fetched"] if _snapshot["data"] else None
         return _snapshot["data"], age, _snapshot["error"]
