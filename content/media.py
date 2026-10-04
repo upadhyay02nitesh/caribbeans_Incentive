@@ -45,6 +45,8 @@ MEDIA = {
     "fallback": "img/fallback.jpg",
     # Real client photo (not stock) — the contact portrait on /lets-connect.
     "team.portrait": "img/team/portrait.png",
+    # Chat widget avatar (header + every assistant reply), cropped from the client's cut-out portrait.
+    "team.chat": "img/team/chat-avatar.png",
 }
 
 # Island hero + card + 3 panel images each

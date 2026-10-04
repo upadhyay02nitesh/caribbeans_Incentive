@@ -110,7 +110,9 @@
       const av = document.createElement("span");
       av.className = "chat__avatar chat__avatar--sm";
       av.setAttribute("aria-hidden", "true");
-      av.textContent = "CI";
+      const face = document.querySelector(".chat__avatar img");
+      if (face) { const im = document.createElement("img"); im.src = face.src; im.alt = ""; av.appendChild(im); }
+      else av.textContent = "CI";
       row.appendChild(av);
     }
     const el = document.createElement("div");
