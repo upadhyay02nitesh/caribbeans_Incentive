@@ -72,7 +72,7 @@
     {# Planning estimate is reachable from every page; on /envision it scrolls in place. #}
     <a href="{{ url_for('main.envision') }}#estimator" class="inquiry-fab" id="inquiry-fab" data-cursor="Estimate">
       <span class="inquiry-fab__dot" aria-hidden="true"></span>
-      <span>Planning Estimate</span>
+      <span><span class="inquiry-fab__more">Planning </span>Estimate</span>
     </a>
   {% endblock %}
   {% include "partials/chat.html" %}

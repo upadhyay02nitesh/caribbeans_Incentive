@@ -421,6 +421,12 @@ html.menu-open .site-header::before { opacity: 0; }
   .wordmark__meta { display: none; }
   .site-header__bar { padding-block: 16px; }
 }
+/* Very small phones (320px): icon-only menu button so the logo and button fit. */
+@media (max-width: 360px) {
+  .site-header__bar { gap: 12px; }
+  .menu-toggle { padding: 0 6px; gap: 0; font-size: 0; }
+  .wordmark__name { font-size: 19px; }
+}
 
 /* ---------------------------------------------------------------------------
    Full-screen menu
@@ -673,7 +679,12 @@ html.menu-open .site-header::before { opacity: 0; }
 .inquiry-fab:hover .inquiry-fab__dot { background: var(--ink); }
 @keyframes ping { 0% { transform: scale(.4); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
 html:not(.js) .inquiry-fab { transform: none; }
-@media (max-width: 560px) { .inquiry-fab { left: 14px; right: 84px; justify-content: center; } }
+/* Phones: a compact "Estimate" button beside the chat launcher, not a bar across
+   the screen (stretched, it covered body copy and footer details). */
+@media (max-width: 560px) {
+  .inquiry-fab { right: calc(14px + 58px + 10px); bottom: 21px; gap: 8px; padding: 11px 15px 11px 13px; font-size: 10px; letter-spacing: .14em; }
+  .inquiry-fab__more { display: none; }
+}
 
 /* ---------------------------------------------------------------------------
    Footer
@@ -732,6 +743,7 @@ html:not(.js) .inquiry-fab { transform: none; }
 .site-footer__col .eyebrow { display: block; margin-bottom: 20px; font-size: 13px; font-weight: 700; letter-spacing: .12em; color: var(--gold-3); }
 .site-footer__col .eyebrow::before { content: none; }
 .site-footer__col ul { display: grid; gap: 10px; font-size: 15px; color: rgba(251, 247, 240, .82); }
+.site-footer__col ul.site-footer__social { display: flex; gap: 12px; }
 .site-footer__col a:hover { color: var(--gold-3); }
 .site-footer__muted { display: block; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: rgba(251, 247, 240, .42); }
 .site-footer__mail { word-break: normal; overflow-wrap: anywhere; }
@@ -791,7 +803,8 @@ html:not(.js) .inquiry-fab { transform: none; }
   position: absolute; right: 0; bottom: 74px;
   display: flex; flex-direction: column;
   width: min(392px, calc(100vw - 28px));
-  height: min(660px, calc(100vh - 128px)); height: min(660px, calc(100dvh - 128px));
+  /* 210px = launcher + gaps + the fixed header (~100px), so the open panel never runs under the header. */
+  height: min(660px, calc(100vh - 210px)); height: min(660px, calc(100dvh - 210px));
   min-height: 0;
   background: var(--chat-bg); border-radius: 24px; overflow: hidden;
   box-shadow: 0 50px 100px -34px rgba(10, 16, 32, .7), 0 0 0 1px rgba(226, 176, 98, .22);
@@ -968,7 +981,7 @@ html:not(.js) .inquiry-fab { transform: none; }
 
 /* Short laptop screens: tighter hero so the cards stay in view */
 @media (max-height: 720px) and (min-width: 561px) {
-  .chat__panel { height: calc(100vh - 110px); height: calc(100dvh - 110px); }
+  .chat__panel { height: calc(100vh - 200px); height: calc(100dvh - 200px); }
   .chat__hello { margin-top: 20px; }
   .chat__hero { padding-bottom: 76px; }
 }
