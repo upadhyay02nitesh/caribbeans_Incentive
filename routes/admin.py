@@ -12,7 +12,7 @@ from flask import (Blueprint, abort, current_app, flash, g, redirect, render_tem
                    url_for)
 
 from content import admin_mock
-from services import analytics, report, sellsy, visitors as live_visitors
+from services import analytics, sellsy, visitors as live_visitors
 from services.storage import signed_url
 from services.store import (AST, STATUSES, brief_value_query, counts_from, counts_query, find_inquiry,
                             inquiries_count_query, inquiries_page_query, inquiry_status_counts_query, inquiries_query,
@@ -284,6 +284,8 @@ def dashboard():
 @login_required
 def export_report():
     """Branded Excel workbook of everything on the dashboard, one round trip."""
+    from services import report  # openpyxl adds ~0.3 s to every cold start; only this route needs it
+
     data = _load(brief_rows=inquiries_query("brief", 5000), rfp_rows=inquiries_query("rfp", 5000),
                  callback_rows=inquiries_query("callback", 5000),
                  visitor_rows=live_visitors.visitors_query(5000), **analytics.queries())

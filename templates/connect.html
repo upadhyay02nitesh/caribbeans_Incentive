@@ -217,7 +217,7 @@
     </div>
     <div class="offices__map" data-reveal>
       <iframe id="office-map" title="Map of our {{ offices[0].name }} office"
-              src="https://maps.google.com/maps?q={{ offices[0].map|urlencode }}&z=13&output=embed"
+              data-src="https://maps.google.com/maps?q={{ offices[0].map|urlencode }}&z=13&output=embed"
               loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
     </div>
   </div>

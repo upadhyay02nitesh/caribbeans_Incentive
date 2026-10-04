@@ -23,11 +23,21 @@
   let active = 0;
   let renderer = null;
 
+  /* Later hero clips carry data-src: load one when it is next up, play it when shown. */
+  const prime = (el) => {
+    if (el && el.tagName === "VIDEO" && el.dataset.src) { el.src = el.dataset.src; delete el.dataset.src; el.load(); }
+  };
+  const primeNext = (i) => window.setTimeout(() => prime(layers[(i + 1) % layers.length]), 1500);
+  if (layers.length > 1) window.addEventListener("load", () => primeNext(0), { once: true });
+
   /* ------------------------------------------------------------ scene state */
   const setActive = (i) => {
     if (i === active) return;
     const prev = active;
     active = i;
+    const shown = layers[i];
+    if (shown && shown.tagName === "VIDEO") { prime(shown); const p = shown.play(); if (p) p.catch(() => {}); }
+    primeNext(i);
     dashes.forEach((d, k) => {
       d.classList.toggle("is-active", k === i);
       d.classList.toggle("is-done", k < i);

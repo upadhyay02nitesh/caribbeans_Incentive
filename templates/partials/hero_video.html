@@ -1,9 +1,14 @@
 <section class="hero" id="hero">
   <div class="hero__media">
     {% for v in hero_video_files %}
-      <video class="hero__scene-layer hero__video {{ 'is-active' if loop.first }}" autoplay muted loop playsinline preload="{{ 'auto' if loop.first else 'metadata' }}" poster="{{ img('hero_poster') }}">
+      {# Only the first clip loads with the page; hero.js loads each next clip while the current one plays. #}
+      {% if loop.first %}
+      <video class="hero__scene-layer hero__video is-active" autoplay muted loop playsinline preload="auto" poster="{{ img('hero_poster') }}">
         <source src="{{ v.src }}" type="{{ v.type }}">
       </video>
+      {% else %}
+      <video class="hero__scene-layer hero__video" muted loop playsinline preload="none" data-src="{{ v.src }}"></video>
+      {% endif %}
     {% endfor %}
     {% for slug, caption in hero.scenes if not hero_video_files %}
       <div class="hero__scene-layer {{ 'is-active' if loop.first }}" data-src="{{ img('hero_scene_' ~ loop.index) }}" style="background-image: url('{{ img('hero_scene_' ~ loop.index) }}');"></div>
