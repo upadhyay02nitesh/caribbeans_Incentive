@@ -31,7 +31,8 @@
   <article class="panel kpi kpi--feature rise" style="--i:1">
     <div class="kpi__top">
       <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-gem"></i></span> Pipeline value</span>
-      <span class="delta" title="Pipeline added this week"><i class="bi bi-arrow-up-right"></i> +{{ (summary.pipeline_daily[-1] - summary.pipeline_daily[-8])|money }}</span>
+      {% set added = summary.pipeline_daily[-1] - summary.pipeline_daily[-8] %}
+      {% if added > 0 %}<span class="delta" title="Pipeline added this week"><i class="bi bi-arrow-up-right"></i> +{{ added|money }}</span>{% endif %}
     </div>
     <div class="kpi__value" data-count="{{ summary.pipeline_value / 1000000 }}" data-prefix="$" data-suffix="M" data-decimals="1">{{ summary.pipeline_value|money }}</div>
     <div class="kpi__foot">
@@ -57,9 +58,9 @@
   <article class="panel kpi rise" style="--i:3">
     <div class="kpi__top">
       <span class="kpi__label"><span class="kpi__icon"><i class="bi bi-envelope-paper"></i></span> Event briefs</span>
-      <span class="delta" title="Submitted this week">+{{ summary.briefs_week }} wk</span>
+      {% if summary.briefs_week %}<span class="delta" title="Submitted this week">+{{ summary.briefs_week }} this week</span>{% endif %}
     </div>
-    <div class="kpi__value" data-count="{{ summary.total_briefs }}">{{ summary.total_briefs }}<small>submitted</small></div>
+    <div class="kpi__value" data-count="{{ summary.total_briefs }}">{{ summary.total_briefs }} <small>submitted</small></div>
     <div class="kpi__foot">
       <span class="kpi__note">{{ summary.awaiting_reply }} awaiting first reply</span>
       <div class="kpi__spark" data-spark="briefs" data-type="bars" data-color="#E2B062"></div>

@@ -54,7 +54,9 @@
     const prefix = node.dataset.prefix || "";
     const suffix = node.dataset.suffix || "";
     const decimals = +(node.dataset.decimals || 0);
-    const final = node.textContent;
+    const final = node.innerHTML;  // keeps unit labels like <small>submitted</small>
+    const unit = node.querySelector("small");
+    const tail = unit ? " " + unit.outerHTML : "";
     if (reduced || isNaN(target)) return;
     const start = performance.now();
     const dur = 1500;
@@ -62,9 +64,9 @@
       const p = Math.min(1, (now - start) / dur);
       const eased = 1 - Math.pow(1 - p, 4);
       const v = target * eased;
-      node.textContent = prefix + (decimals ? v.toFixed(decimals) : fmtInt(v)) + suffix;
+      node.innerHTML = prefix + (decimals ? v.toFixed(decimals) : fmtInt(v)) + suffix + tail;
       if (p < 1) requestAnimationFrame(tick);
-      else node.textContent = final;
+      else node.innerHTML = final;
     };
     requestAnimationFrame(tick);
   };

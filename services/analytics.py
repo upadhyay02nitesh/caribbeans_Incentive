@@ -36,7 +36,10 @@ def queries():
 
 
 def _pct_change(current, previous):
-    return round((current - previous) / previous * 100, 1) if previous else None
+    # Below ~20 sessions a percentage is noise (4 -> 262 reads as "+6450%"): callers show counts instead.
+    if previous < 20:
+        return None
+    return round((current - previous) / previous * 100, 1)
 
 
 def _sum_json(rows, field):

@@ -1,0 +1,359 @@
+=====================================================================
+   HOW TO CHANGE THE PHOTOS AND VIDEOS ON THE WEBSITE
+   Caribbean Incentive · simple guide, no technical knowledge needed
+=====================================================================
+
+With this guide you received two folders:
+
+   img     all the photos on the website
+   video   the moving videos at the top of the home page
+
+The idea is simple:
+
+   Every photo has a fixed name and a fixed place.
+   To change a photo, put your new photo in the SAME FOLDER
+   with the EXACT SAME NAME, so it replaces the old one.
+   Then email that folder back to your developer, who puts it live.
+
+You don't need any special software, only your computer and email.
+
+
+---------------------------------------------------------------------
+PART 1 · REPLACE A PHOTO  (on your computer, about 5 minutes)
+---------------------------------------------------------------------
+
+STEP 1. Unzip the folders you received.
+        Right-click the zip file > "Extract All" > "Extract".
+
+STEP 2. Find the photo you want to change.
+        Look it up in PART 3 below. It tells you which folders to open,
+        for example:  img > islands > anguilla > hero.jpg
+        Tip: inside a folder, click "View" > "Large icons" to see the
+        pictures, so you can check it's the right one.
+
+STEP 3. Make sure you can see the end of file names.
+        Open File Explorer > click "View" at the top > "Show" >
+        tick "File name extensions".
+        Now you see names like  hero.jpg  instead of just  hero
+
+STEP 4. Make sure your new photo is the same TYPE.
+        Look at the last letters of the name:
+           .jpg  almost all photos
+           .png  only the logos and the team photo
+           .mp4  only the home page videos
+        If your photo is another type (for example .jpeg, .heic or .png
+        from a phone), convert it:
+           Open it in Paint > File > Save as > "JPEG picture".
+
+STEP 5. Keep it light, so the website stays fast.
+        Photos should be under 400 KB, videos under 10 MB.
+        (Right-click the photo > Properties shows its size.)
+        If a photo is too big: open it in Paint > "Resize" >
+        choose "Pixels" > type 1400 in the width box > OK > Save.
+
+        Use the same SHAPE as the old photo:
+           WIDE ....... like a postcard lying flat (most photos)
+           TALL ....... like a phone standing up (the island "card" photos)
+           SQUARE ..... the team photo only
+        The website trims the edges to fit, so keep the important part
+        (people, the view) in the MIDDLE of the photo.
+
+STEP 6. Rename your new photo to the EXACT same name as the old one.
+        Right-click your photo > Rename > type the name, e.g.  hero.jpg
+        Small letters, same spelling, same dashes, no spaces.
+           Correct:   the-island.jpg
+           Wrong:     The Island.jpg     the_island.jpg     the-island (1).jpg
+
+STEP 7. Drag your renamed photo into the folder from STEP 2.
+        Windows asks "Replace or Skip Files".
+        Click "Replace the file in the destination".
+        Done: the old photo is replaced.
+
+Repeat STEP 2 to STEP 7 for every photo you want to change.
+
+
+---------------------------------------------------------------------
+PART 2 · SEND IT BACK  (by email)
+---------------------------------------------------------------------
+
+Send back the FOLDER that holds your new photo, not the photo alone.
+(Many photos have the same name, for example every island has a
+hero.jpg, so the folder tells us which island it belongs to.)
+
+STEP 1. Right-click that folder (for example the "anguilla" folder) >
+        "Send to" > "Compressed (zipped) folder".
+        A new file appears:  anguilla.zip
+
+STEP 2. Attach the zip file to an email to your developer.
+        In the email, write one line per change, for example:
+           "New Anguilla top photo"
+           "New photo for the Welcome section on the home page"
+
+STEP 3. Changed photos in several folders? Zip each folder and attach
+        them all. If the email says the files are too big (more than
+        about 20 MB), send them in two or three emails, or share them
+        with a OneDrive or Google Drive link instead.
+
+Your developer puts them on the website. You'll see them within a day.
+
+
+---------------------------------------------------------------------
+PART 3 · WHICH PHOTO IS WHERE
+---------------------------------------------------------------------
+
+How to read this list:
+
+   What you see on the website
+      Open:   the folders to open, one after another
+      Name:   the exact name your new photo must have
+
+
+*** CAREFUL: some photos appear in SEVERAL places ***
+Changing one of these changes it everywhere it is used:
+
+   img > islands > st-barth > hero.jpg
+      Home page intro, Islands page, St. Barth page, menu
+   img > islands > saint-martin > the-island.jpg
+      Home page welcome, Our Story, Saint Martin page, menu
+   img > islands > grenada > experiences.jpg
+      Home page wide photo, Why Caribbean, Grenada page, menu
+   img > islands > barbados > the-island.jpg
+      What We Do, Barbados page, menu
+   img > islands > british-virgin-islands > hero.jpg
+      Connected page, British Virgin Islands page, menu
+   img > itinerary > day4.jpg
+      Envision page, sample trip day 4, chat window, menu
+   img > team > portrait.png
+      Let's Connect page and the chat window
+
+
+=== ON EVERY PAGE ===================================================
+
+Small logo, top left
+   Open:  img > brand
+   Name:  logo-mark.png
+
+Big logo, bottom of the page
+   Open:  img > brand
+   Name:  logo-full.png
+
+Tiny logo in the browser tab
+   Open:  img > brand
+   Names: favicon.png and the favicon-16 / 32 / 48 / 64 / 180 files
+   (Same logo in several sizes. Just send your developer the new logo
+    and they will make these.)
+
+Team photo in the chat window (bottom right)
+   Open:  img > team
+   Name:  portrait.png      (square photo)
+
+
+=== HOME PAGE ======================================================
+
+Moving video at the very top (3 videos that play one after another)
+   Open:  video
+   Names: hero-1.mp4, hero-2.mp4, hero-3.mp4
+   Picture shown for a second while the video loads:
+   Open:  img
+   Name:  hero-poster.jpg
+
+Two overlapping photos just below the top
+   Open:  img > islands > st-barth      Name: hero.jpg
+   Open:  img > islands > anguilla      Name: hero.jpg
+
+"Welcome" photo
+   Open:  img > islands > saint-martin
+   Name:  the-island.jpg
+
+Sliding island cards (one tall card per island)
+   Open:  img > islands > (island name)
+   Name:  card.jpg          (TALL photo)
+
+"What we do" photos
+   Open:  img > hero
+   Names: scene-1.jpg, scene-2.jpg
+
+Small round photos (one per experience)
+   Open:  img > experiences > (experience name)
+   Name:  1.jpg
+
+Wide photo near the bottom
+   Open:  img > islands > grenada
+   Name:  experiences.jpg
+
+
+=== OUR STORY ======================================================
+
+Big photo at the top
+   Open:  img > islands > saint-martin
+   Name:  the-island.jpg
+
+Photo next to "Our approach"
+   Open:  img > experiences > the-art-of-execution
+   Name:  2.jpg
+
+
+=== WHAT WE DO =====================================================
+
+Big photo at the top
+   Open:  img > islands > barbados
+   Name:  the-island.jpg
+
+First service photo
+   Open:  img > experiences > the-art-of-execution
+   Name:  1.jpg
+
+Second service photo
+   Open:  img > experiences > quiet-island-moments
+   Name:  2.jpg
+
+
+=== CONNECTED ======================================================
+
+Big photo at the top
+   Open:  img > islands > british-virgin-islands
+   Name:  hero.jpg
+
+Photos in the map pop-ups
+   = each island's  card.jpg  (see ISLAND PAGES below)
+
+
+=== EXPLORE OUR ISLANDS (the list of all islands) ==================
+
+Big photo at the top
+   Open:  img > islands > st-barth
+   Name:  hero.jpg
+
+One photo per island in the list
+   = each island's  hero.jpg  (see ISLAND PAGES below)
+
+
+=== ISLAND PAGES (one page per island) =============================
+
+Each island has its own folder with 5 photos:
+
+   Open:  img > islands > (island name)
+
+   hero.jpg ............ big photo at the top of the island's page
+   card.jpg ............ TALL card (home page, map, island lists)
+   the-island.jpg ...... "The Island" section
+   gastronomy.jpg ...... "Gastronomy" (food) section
+   experiences.jpg ..... "Experiences" section
+
+Island name on the website  >  folder to open
+   Saint Martin ............. saint-martin
+   St. Barth ................ st-barth
+   Anguilla ................. anguilla
+   British Virgin Islands ... british-virgin-islands
+   Dominica ................. dominica
+   Grenada .................. grenada
+   Barbados ................. barbados
+
+
+=== EXPERIENCES PAGE ===============================================
+
+Big photo at the top
+   Open:  img > experiences > curated-experiences
+   Name:  1.jpg
+
+Each experience shows 6 photos
+   Open:  img > experiences > (experience name)
+   Names: 1.jpg, 2.jpg, 3.jpg, 4.jpg, 5.jpg, 6.jpg
+   (1.jpg is also the small round photo on the home page,
+    2.jpg is also used on the Why Caribbean page)
+
+Experience name on the website  >  folder to open
+   Curated Experiences ............. curated-experiences
+   Caribbean Legacy ................ caribbean-legacy
+   Island Flavors .................. island-flavors
+   Across Sand and Sea ............. across-sand-and-sea
+   Team Building Experiences ....... unique-team-building-experiences
+   Crafted in the Caribbean ........ crafted-in-the-caribbean
+   Quiet Island Moments ............ quiet-island-moments
+   The Art of Execution ............ the-art-of-execution
+   Sustainability & Authenticity ... sustainability-and-authenticity
+
+
+=== WHY CARIBBEAN ==================================================
+
+Big photo at the top
+   Open:  img > islands > grenada
+   Name:  experiences.jpg
+
+Large photo in the middle
+   Open:  img > islands > dominica
+   Name:  hero.jpg
+
+Experience tiles
+   = each experience's  2.jpg  (see EXPERIENCES PAGE above)
+
+Row of island cards
+   = each island's  card.jpg  (see ISLAND PAGES above)
+
+
+=== ENVISION =======================================================
+
+Big photo at the top
+   Open:  img > itinerary
+   Name:  day4.jpg
+
+Sample trip, one photo per day
+   Open:  img > itinerary
+   Names: day1.jpg, day2.jpg, day3.jpg, day4.jpg, day5.jpg
+
+
+=== LET'S CONNECT ==================================================
+
+Contact person photo (the round photo)
+   Open:  img > team
+   Name:  portrait.png      (square photo, must be .png)
+
+
+=== PAGE NOT FOUND (shown when a link is broken) ===================
+
+Background photo
+   Open:  img > islands > british-virgin-islands
+   Name:  the-island.jpg
+
+
+---------------------------------------------------------------------
+PART 4 · THE BROCHURE (PDF)
+---------------------------------------------------------------------
+
+The "Brochure" link on Our Story and Let's Connect opens your PDF,
+and the chat assistant reads it to answer visitors' questions.
+To change it, simply email the new PDF to your developer.
+
+
+---------------------------------------------------------------------
+QUICK ANSWERS
+---------------------------------------------------------------------
+
+I'm not sure which photo it is
+   > Open the folder with "View" > "Large icons" and look at the
+     pictures. Or send your developer a screenshot of the page and
+     your new photo, and they will place it.
+
+I replaced the wrong photo
+   > No problem. Nothing changes on the website until your developer
+     uploads it, and every old photo is kept. Just tell them.
+
+My photo looks cut off on the website
+   > The website trims edges to fit. Use a photo where the important
+     part is in the middle, in the same shape as the old one.
+
+
+---------------------------------------------------------------------
+FOR THE DEVELOPER (the client can skip this)
+---------------------------------------------------------------------
+The shared folders are static/img and static/video. Returned folders go
+back to the same place under static/, then commit and push; Vercel
+redeploys. Paths live in content/media.py (templates never hard-code
+them). Static files are cached by browsers for 7 days (vercel.json), so
+a replaced file under the same name can show the old version to returning
+visitors; rename the file and update content/media.py if it must change
+for everyone at once. Any static/video/hero*.mp4 is picked up for the
+home hero automatically. A new brochure goes in both static/docs/
+(caribbean-incentive-brochure.pdf) and knowledge/ (for the assistant).
+Before uploading, check each photo is under ~400 KB and each video
+under ~10 MB.
