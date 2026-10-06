@@ -80,6 +80,12 @@ class Config:
 
     # Visitor tracking: one IP -> city/country lookup per new visitor ({ip} is
     # substituted). ip-api.com's free tier is non-commercial; blank disables it.
-    GEOIP_URL = os.environ.get("GEOIP_URL", "http://ip-api.com/json/{ip}?fields=status,country,regionName,city,org,isp")
+    GEOIP_URL = os.environ.get("GEOIP_URL", "http://ip-api.com/json/{ip}?fields=status,country,countryCode,regionName,city,lat,lon,timezone,org,isp").strip()
+    # Optional ipinfo.io token; when set it replaces GEOIP_URL as the IP provider (HTTPS, commercial use allowed).
+    IP_GEOLOCATION_API_KEY = os.environ.get("IP_GEOLOCATION_API_KEY", "").strip()
+    # Names browser-GPS coordinates (Nominatim/OpenStreetMap, no key). Blank disables naming, not GPS.
+    REVERSE_GEOCODE_URL = os.environ.get(
+        "REVERSE_GEOCODE_URL",
+        "https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&lat={lat}&lon={lon}").strip()
 
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10 MB, covers RFP upload cap

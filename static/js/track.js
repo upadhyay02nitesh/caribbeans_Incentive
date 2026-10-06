@@ -53,3 +53,41 @@
   });
   window.addEventListener("pagehide", flush);
 })();
+
+/* Precise location (optional enrichment). The server already stores an
+   approximate IP location for every visitor; this asks the browser once for
+   GPS and, only if the visitor allows it, sends the coordinates to
+   POST /t/location. Never blocks the page and never asks twice: a timestamp in
+   localStorage records that we asked, and a "denied" permission is respected. */
+(function () {
+  var KEY = "ci_geo_asked";
+  var ASK_AFTER_MS = 8000;               // let the visitor see the page first
+  var REASK_MS = 30 * 24 * 3600 * 1000;  // refresh a granted location at most monthly
+  if (!window.isSecureContext || !("geolocation" in navigator) || !window.fetch) return;
+  var asked = 0;
+  try { asked = +localStorage.getItem(KEY) || 0; } catch (e) { return; } // can't remember -> don't risk re-prompting
+  if (Date.now() - asked < REASK_MS) return;
+
+  function remember() { try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {} }
+  function send(pos) {
+    fetch("/t/location", {
+      method: "POST", credentials: "same-origin", keepalive: true,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy })
+    }).catch(function () {});
+  }
+  function ask() {
+    remember();
+    navigator.geolocation.getCurrentPosition(send, function () { /* denied / timeout / unavailable: IP location stands */ },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 10 * 60 * 1000 });
+  }
+  function decide(state) {
+    if (state === "denied") { remember(); return; }
+    window.setTimeout(ask, state === "granted" ? 0 : ASK_AFTER_MS);
+  }
+  if (navigator.permissions && navigator.permissions.query) {
+    navigator.permissions.query({ name: "geolocation" }).then(function (s) { decide(s.state); }, function () { decide("prompt"); });
+  } else {
+    decide("prompt");
+  }
+})();

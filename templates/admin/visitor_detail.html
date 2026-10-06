@@ -13,7 +13,7 @@
     <div>
       <span class="eyebrow">{{ visitor.label }}</span>
       <h1>{{ visitor.company or visitor.name or 'Anonymous visitor' }}</h1>
-      <p><i class="bi bi-geo-alt"></i> {{ visitor.city }}, {{ visitor.country }} · via {{ visitor.source }}</p>
+      <p><i class="bi bi-geo-alt"></i> {{ visitor.location.label }}{% if visitor.location.kind %} <span class="loc-kind loc-kind--{{ visitor.location.kind }}">{{ '📍 Precise' if visitor.location.kind == 'precise' else '≈ Approximate' }}</span>{% endif %} · via {{ visitor.source }}</p>
     </div>
   </div>
   <div class="admin-header__actions" style="align-items:center">
@@ -43,6 +43,11 @@
       <dl class="facts" style="margin:0">
         <div><dt>Email</dt><dd title="{{ visitor.email }}">{{ visitor.email or 'Not captured yet' }}</dd></div>
         {% if visitor.name %}<div><dt>Name</dt><dd>{{ visitor.name }}</dd></div>{% endif %}
+        <div><dt>Location</dt><dd>{{ visitor.location.label }}</dd></div>
+        <div><dt>Location type</dt><dd>{{ visitor.location.type }}</dd></div>
+        {% if visitor.location.coords %}<div><dt>Coordinates</dt><dd>{{ visitor.location.coords }}</dd></div>{% endif %}
+        {% if visitor.location.kind %}<div><dt>Accuracy</dt><dd>{{ visitor.location.accuracy }}</dd></div>{% endif %}
+        {% if visitor.location.updated %}<div><dt>Location updated</dt><dd>{{ visitor.location.updated }}</dd></div>{% endif %}
         <div><dt>Device</dt><dd>{{ visitor.device }} · {{ visitor.browser or '—' }} on {{ visitor.os or '—' }}</dd></div>
         <div><dt>Network</dt><dd title="{{ visitor.ip }}">{{ visitor.network or '—' }}</dd></div>
         <div><dt>Landing page</dt><dd>{{ visitor.landing_page or '—' }}</dd></div>

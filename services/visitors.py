@@ -39,6 +39,7 @@ from urllib.parse import urlparse
 
 from flask import current_app, request
 
+from services import geo
 from services.runtime import SERVERLESS
 from services.store import AST, PREFIX, _connect, _dsn, query_batch
 
@@ -51,6 +52,8 @@ LEGACY_EVENTS = f"{PREFIX}_visitor_events"  # per-click history, no longer kept
 COOKIE = "ci_vid"
 COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 SESSION_GAP = timedelta(minutes=30)
+RETRY_UNKNOWN = timedelta(hours=24)  # retry a failed IP lookup after a day
+GPS_REFRESH = timedelta(days=30)     # accept a fresh browser location at most monthly
 ISLAND_PREFIX = "/explore-our-islands/"
 CONNECT_PATH = "/lets-connect"
 
@@ -90,6 +93,16 @@ ALTER TABLE {VISITORS} ADD COLUMN IF NOT EXISTS saw_connect     BOOLEAN NOT NULL
 ALTER TABLE {VISITORS} ADD COLUMN IF NOT EXISTS session_started TIMESTAMPTZ;
 ALTER TABLE {VISITORS} ADD COLUMN IF NOT EXISTS session_pages   INTEGER NOT NULL DEFAULT 1;
 CREATE INDEX IF NOT EXISTS {VISITORS}_last_seen_idx ON {VISITORS} (last_seen DESC);
+-- Location enrichment (services/geo.py). city/region/country above are reused.
+ALTER TABLE {VISITORS} ADD COLUMN IF NOT EXISTS location_method     TEXT;  -- browser_gps | ip_approximate | unknown
+ALTER TABLE {VISITORS} ADD COLUMN IF NOT EXISTS latitude            DOUBLE PRECISION;
+ALTER TABLE {VISITORS} ADD COLUMN IF NOT EXISTS longitude           DOUBLE PRECISION;
+ALTER TABLE {VISITORS} ADD COLUMN IF NOT EXISTS location_accuracy   DOUBLE PRECISION;  -- metres, browser_gps only
+ALTER TABLE {VISITORS} ADD COLUMN IF NOT EXISTS country_code        TEXT;
+ALTER TABLE {VISITORS} ADD COLUMN IF NOT EXISTS timezone            TEXT;
+ALTER TABLE {VISITORS} ADD COLUMN IF NOT EXISTS location_updated_at TIMESTAMPTZ;
+UPDATE {VISITORS} SET location_method = 'ip_approximate', location_updated_at = last_seen
+  WHERE location_method IS NULL AND COALESCE(city, '') NOT IN ('', 'Local network');
 
 CREATE TABLE IF NOT EXISTS {DAILY} (
     day             DATE PRIMARY KEY,
@@ -248,7 +261,9 @@ def _write(kind, data):
             elif kind == "identify":
                 _write_identify(cur, data)
     if kind == "pageview" and data.get("_needs_geo"):
-        _geolocate(data["visitor_key"], data["ip"])
+        _locate_by_ip(data["visitor_key"], data["ip"], data.get("geo_hint"))
+    elif kind == "gps":
+        _locate_by_gps(data)
 
 
 def _local_day(ts):
@@ -286,7 +301,8 @@ def _bump_day(cur, day, sessions=0, pageviews=0, bounces=0, seconds=0, hour=None
 def _write_pageview(cur, d):
     # One writer thread, so read-then-write is race free.
     cur.execute(
-        f"SELECT id, sessions, last_seen, city, session_pages, session_started FROM {VISITORS} WHERE visitor_key = %s",
+        f"SELECT id, sessions, last_seen, location_method, location_updated_at, session_pages, session_started "
+        f"FROM {VISITORS} WHERE visitor_key = %s",
         (d["visitor_key"],),
     )
     row = cur.fetchone()
@@ -309,8 +325,9 @@ def _write_pageview(cur, d):
         d["_needs_geo"] = True
         return
 
-    visitor_id, sessions, last_seen, city, session_pages, session_started = row
-    d["_needs_geo"] = city in (None, "", "Local network")
+    visitor_id, sessions, last_seen, method, located_at, session_pages, session_started = row
+    # Located visitors are never looked up again; a failed lookup is retried after a day.
+    d["_needs_geo"] = method is None or (method == "unknown" and (located_at is None or at - located_at > RETRY_UNKNOWN))
     if at - last_seen > SESSION_GAP:
         # New session: counted as a bounce until a second page arrives.
         sessions, session_pages, session_started = sessions + 1, 1, at
@@ -357,41 +374,54 @@ def _write_identify(cur, d):
     )
 
 
-def _geolocate(visitor_key, ip):
-    """Fill city/region/country/network once per visitor.
+_LOCATION_SET = """
+    city = %(city)s, region = %(region)s, country = %(country)s, country_code = %(country_code)s,
+    latitude = %(latitude)s, longitude = %(longitude)s, timezone = %(timezone)s,
+    network = COALESCE(NULLIF(%(network)s, ''), network), location_updated_at = NOW()
+"""
 
-    A private or loopback address (running locally, or a LAN visitor) has no
-    location of its own, so it is looked up with a blank IP — the GeoIP service
-    then answers for this server's public address, which is where that visitor is.
-    """
-    url = current_app.config.get("GEOIP_URL", "")
-    if not url:
-        return
-    try:
-        addr = ip_address(ip)
-    except ValueError:
-        return
-    lookup_ip = "" if addr.is_private or addr.is_loopback else ip
-    try:
-        with urllib.request.urlopen(url.format(ip=lookup_ip), timeout=4) as resp:
-            info = json.loads(resp.read().decode("utf-8"))
-    except Exception:
-        logger.warning("GeoIP lookup failed for a visitor.", exc_info=True)
-        return
-    if info.get("status") not in (None, "success"):
-        return
-    place = {
-        "city": info.get("city") or "",
-        "region": info.get("regionName") or info.get("region") or "",
-        "country": info.get("country") or "",
-        "network": info.get("org") or info.get("isp") or "",
-    }
+
+def _locate_by_ip(visitor_key, ip, hint=None):
+    """Approximate location from the IP: Vercel's edge headers, else the IP provider.
+    Never overwrites a precise browser location; marks 'unknown' when both fail."""
+    place = hint or geo.from_provider(ip)
     with _connect() as conn:
         with conn.cursor() as cur:
+            if place:
+                cur.execute(
+                    f"UPDATE {VISITORS} SET location_method = 'ip_approximate', location_accuracy = NULL, {_LOCATION_SET} "
+                    f"WHERE visitor_key = %(key)s AND location_method IS DISTINCT FROM 'browser_gps'",
+                    {**place, "key": visitor_key},
+                )
+            else:
+                cur.execute(
+                    f"UPDATE {VISITORS} SET location_method = 'unknown', location_updated_at = NOW() "
+                    f"WHERE visitor_key = %s AND (location_method IS NULL OR location_method = 'unknown')",
+                    (visitor_key,),
+                )
+
+
+def _locate_by_gps(d):
+    """Precise location the visitor's browser shared. Named by reverse geocoding;
+    if that fails the coordinates are still saved and the IP place name is kept."""
+    place = geo.reverse_geocode(d["latitude"], d["longitude"]) or {}
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            _ensure_schema(cur)
             cur.execute(
-                f"UPDATE {VISITORS} SET city = %(city)s, region = %(region)s, country = %(country)s, "
-                f"network = %(network)s WHERE visitor_key = %(key)s",
-                {**place, "key": visitor_key},
+                f"""
+                UPDATE {VISITORS} SET location_method = 'browser_gps',
+                    latitude = %(latitude)s, longitude = %(longitude)s, location_accuracy = %(accuracy)s,
+                    city = COALESCE(NULLIF(%(city)s, ''), city), region = COALESCE(NULLIF(%(region)s, ''), region),
+                    country = COALESCE(NULLIF(%(country)s, ''), country),
+                    country_code = COALESCE(NULLIF(%(country_code)s, ''), country_code),
+                    location_updated_at = NOW()
+                WHERE visitor_key = %(key)s
+                  AND (location_method IS DISTINCT FROM 'browser_gps' OR location_updated_at < NOW() - %(refresh)s)
+                """,
+                {"latitude": d["latitude"], "longitude": d["longitude"], "accuracy": d["accuracy"],
+                 "city": place.get("city", ""), "region": place.get("region", ""), "country": place.get("country", ""),
+                 "country_code": place.get("country_code", ""), "key": d["visitor_key"], "refresh": GPS_REFRESH},
             )
 
 
@@ -420,7 +450,23 @@ def record_pageview(req, key, title):
         "os": _os(ua),
         "user_agent": ua[:500],
         "at": datetime.now(timezone.utc),
+        "geo_hint": geo.from_vercel_headers(req.headers),  # free on Vercel; None elsewhere
     }))
+
+
+def record_gps(req, latitude, longitude, accuracy):
+    """Browser-shared location for the visitor in this request's cookie (never a client-sent id)."""
+    key = req.cookies.get(COOKIE, "")
+    coords = geo.valid_coords(latitude, longitude)
+    try:
+        acc = float(accuracy)
+    except (TypeError, ValueError):
+        acc = None
+    if (not re.fullmatch(r"[A-Za-z0-9_-]{16,64}", key) or is_bot(req) or coords is None
+            or acc is None or not (0 < acc <= 50_000)):
+        return False
+    _enqueue(("gps", {"visitor_key": key, "latitude": coords[0], "longitude": coords[1], "accuracy": round(acc, 1)}))
+    return True
 
 
 def record_module(req, module, ms, path):
@@ -528,15 +574,33 @@ def _status(row):
 
 
 def _shape(row):
-    parts = [row.get("city"), row.get("region")]
-    city = ", ".join(dict.fromkeys(p for p in parts if p)) or "Locating…"
+    method = row.get("location_method")
+    country = row.get("country") or geo.country_name(row.get("country_code"))
+    place = ", ".join(dict.fromkeys(p for p in (row.get("city"), country) if p))
+    if method is None:
+        city = "Locating…"
+    else:
+        city = place or "Unknown"
+    lat, lon, acc = row.get("latitude"), row.get("longitude"), row.get("location_accuracy")
+    location = {
+        "label": city,
+        "kind": {"browser_gps": "precise", "ip_approximate": "approximate"}.get(method),
+        "type": {"browser_gps": "Precise browser location", "ip_approximate": "Approximate IP location",
+                 "unknown": "Unknown"}.get(method, "Not resolved yet"),
+        "coords": f"{lat:.4f}, {lon:.4f}" if lat is not None and lon is not None else "",
+        "accuracy": (f"~{acc:,.0f} meters" if method == "browser_gps" and acc is not None
+                     else "Approximate / IP-derived" if method == "ip_approximate" else "—"),
+        "updated": _fmt(row.get("location_updated_at")),
+        "timezone": row.get("timezone") or "",
+    }
     module_ms = {m: float(v) for m, v in (row.get("module_ms") or {}).items()}
     total_ms = sum(module_ms.values()) or 1
     return {
         **row,
         "label": f"Visitor #{row['id']}",
         "city": city,
-        "country": row.get("country") or "—",
+        "country": country or "—",
+        "location": location,
         "source": row.get("source") or "Direct",
         "device": row.get("device") or "Desktop",
         "module_ms": module_ms,

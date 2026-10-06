@@ -48,7 +48,7 @@
               <div><div class="who__name">{{ v.company or v.name or 'Anonymous' }}</div><div class="who__meta">{{ v.label }}{% if v.email %} · {{ v.email }}{% endif %}</div></div>
             </div>
           </td>
-          <td>{{ v.city }}<div class="who__meta">{{ v.country }}</div></td>
+          <td>{{ v.location.label }}{% if v.location.kind %}<div class="who__meta loc-kind loc-kind--{{ v.location.kind }}">{{ '📍 Precise' if v.location.kind == 'precise' else '≈ Approximate' }}</div>{% endif %}</td>
           <td class="muted">{{ v.source }}</td>
           <td class="muted"><i class="bi bi-{{ 'phone' if v.device == 'Mobile' else 'tablet' if v.device == 'Tablet' else 'laptop' }}"></i> {{ v.device }}</td>
           <td class="num">{{ v.sessions }}</td>

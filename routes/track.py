@@ -46,3 +46,12 @@ def beacon():
             except (TypeError, ValueError):
                 continue
     return "", 204
+
+
+@track.route("/t/location", methods=["POST"])
+def location_beacon():
+    """Browser GPS for the visitor identified by their ci_vid cookie. Validated in
+    visitors.record_gps; nothing is returned, so no location data is ever exposed."""
+    data = request.get_json(force=True, silent=True) or {}
+    ok = visitors.record_gps(request, data.get("latitude"), data.get("longitude"), data.get("accuracy"))
+    return "", 204 if ok else 400
