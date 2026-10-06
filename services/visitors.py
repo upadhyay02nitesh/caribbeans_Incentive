@@ -559,6 +559,11 @@ def lead_context(req, channel):
 # Admin reads
 # ---------------------------------------------------------------------------
 def _fmt(ts):
+    if isinstance(ts, str):  # a timestamp column the batch reader did not convert
+        try:
+            ts = datetime.fromisoformat(ts)
+        except ValueError:
+            return ts[:16]
     return ts.astimezone().strftime("%Y-%m-%d %H:%M") if ts else ""
 
 

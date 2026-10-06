@@ -321,7 +321,7 @@ def find_inquiry(kind, reference):
 # admin page gathers all of its SELECTs into one statement, run outside a
 # transaction: one round trip per page instead of three per query.
 # ---------------------------------------------------------------------------
-_TS_KEYS = {"created_at", "first_seen", "last_seen", "session_started"}
+_TS_KEYS = {"created_at", "first_seen", "last_seen", "session_started", "location_updated_at"}
 _TS_RE = re.compile(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d+))?([+-]\d{2})(?::?(\d{2}))?$")
 
 
