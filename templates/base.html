@@ -6,7 +6,8 @@
   {# Title, description, canonical and share image per page: content/seo.py, via page_meta. #}
   <title>{% block title %}{{ page_meta.title }}{% endblock %}</title>
   <meta name="description" content="{% block description %}{{ page_meta.description }}{% endblock %}">
-  {% if page_meta.canonical %}<link rel="canonical" href="{{ page_meta.canonical }}">{% endif %}
+  {% for name, token in site_verification.items() %}<meta name="{{ name }}" content="{{ token }}">
+  {% endfor %}{% if page_meta.canonical %}<link rel="canonical" href="{{ page_meta.canonical }}">{% endif %}
 
   <meta property="og:title" content="{{ page_meta.title }}">
   <meta property="og:description" content="{{ page_meta.description }}">

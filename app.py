@@ -144,6 +144,7 @@ def create_app(config_class=Config):
                 os.environ.get("TRACKING_HOST") or request.host),
             "current_year": datetime.now().year,
             "page_meta": _page_meta(),
+            "site_verification": seo_content.SITE_VERIFICATION,
         }
 
     @app.after_request

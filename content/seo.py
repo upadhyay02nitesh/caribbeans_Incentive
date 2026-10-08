@@ -97,6 +97,13 @@ PAGES = {
 
 # Endpoints that render a public page but must not be indexed: the /inquiry/*
 # POSTs re-render connect.html in place, so they borrow its copy and canonical.
+# Ownership tokens rendered as <meta name=... content=...> in every page's <head>
+# (server-rendered, so crawlers see them without JavaScript). Not secrets.
+SITE_VERIFICATION = {
+    # Meta Business portfolio "Caribbean incentive" -> Brand safety -> Domains.
+    "facebook-domain-verification": "9ys9f6dt9qfwqmzl2pwvja4czhhwmr",
+}
+
 ALIASES = {
     "inquiry.brief": "main.connect",
     "inquiry.rfp": "main.connect",
