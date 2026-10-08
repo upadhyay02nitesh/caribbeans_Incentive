@@ -1,13 +1,11 @@
 {% extends "base.html" %}
 {% from "partials/section_head.html" import page_hero %}
-{% block title %}{{ island.name }} · {{ brand }}{% endblock %}
-{% block description %}{{ island.headline }}{% endblock %}
 {% block body_class %}island-page{% endblock %}
 
 {% block content %}
 <section class="island-hero" data-page-hero>
   <div class="island-hero__media">
-    <img src="{{ img('island.' ~ island.slug ~ '.hero') }}" alt="" width="1400" height="933" fetchpriority="high" data-hero-img>
+    <img src="{{ img('island.' ~ island.slug ~ '.hero') }}" alt="{{ island.full_name }}" width="1400" height="933" fetchpriority="high" data-hero-img>
   </div>
   <div class="island-hero__overlay" aria-hidden="true"></div>
   <div class="shell island-hero__content">

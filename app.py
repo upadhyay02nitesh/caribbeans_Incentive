@@ -1,8 +1,11 @@
+import json
+import logging
 import os
 import re
 from datetime import datetime
 
-from flask import Flask, render_template, request, url_for
+from flask import Flask, redirect, render_template, request, url_for
+from werkzeug.exceptions import HTTPException
 
 from markupsafe import Markup, escape
 
@@ -36,18 +39,25 @@ def create_app(config_class=Config):
     from routes.admin import admin
     from routes.chat import chat
     from routes.track import track
+    from routes.seo import seo
 
     app.register_blueprint(main)
     app.register_blueprint(inquiry)
     app.register_blueprint(admin)
     app.register_blueprint(chat)
     app.register_blueprint(track)
+    app.register_blueprint(seo)
+
+    if SERVERLESS and app.config["SECRET_KEY"] == "dev-key-not-secure":
+        logging.getLogger(__name__).warning(
+            "FLASK_SECRET_KEY is not set: admin sessions are signed with the public default key.")
 
     from content import site as site_content
     from content import islands as islands_content
     from content.media import img as media_img
     from content import media as media_content
     from content.admin_mock import engagement_level
+    from content import seo as seo_content
 
     app.jinja_env.globals["img"] = media_img
     app.jinja_env.filters["md_bold"] = md_bold
@@ -73,6 +83,46 @@ def create_app(config_class=Config):
             for f in clips
         ]
 
+    def _page_meta():
+        """Title, description, canonical, share image and JSON-LD for this request."""
+        site_url = app.config["SITE_URL"]
+        endpoint = seo_content.ALIASES.get(request.endpoint, request.endpoint)
+        meta = seo_content.PAGES.get(endpoint)
+        if endpoint == "main.island_detail":
+            island = islands_content.get_island((request.view_args or {}).get("slug", ""))
+            meta = seo_content.island_meta(island) if island else None
+        public = meta is not None
+        meta = dict(meta or seo_content.FALLBACK)
+
+        # Canonical is the clean production URL of the page itself (never the
+        # query string); /inquiry/* re-renders point at /lets-connect.
+        canonical = None
+        if public:
+            path = url_for(endpoint, **(request.view_args or {})) if endpoint != request.endpoint else request.path
+            canonical = site_url + path
+        image = media_img(meta["image"])
+        meta.update(canonical=canonical,
+                    image=image if image.startswith("http") else site_url + image)
+
+        graph = []
+        if endpoint == "main.index":
+            logo = site_url + url_for("static", filename="img/brand/logo-full.png")
+            graph += [seo_content.organization(site_url, logo, [i["name"] for i in islands_content.ISLANDS]),
+                      seo_content.website(site_url)]
+        if canonical and endpoint != "main.index":
+            crumbs = [("Home", site_url + "/")]
+            if endpoint == "main.island_detail":
+                crumbs.append(("Explore Our Islands", site_url + url_for("main.islands_index")))
+            crumbs.append((meta.get("crumb", meta["title"]), canonical))
+            graph.append({"@type": "BreadcrumbList", "itemListElement": [
+                {"@type": "ListItem", "position": n, "name": name, "item": url}
+                for n, (name, url) in enumerate(crumbs, start=1)]})
+        if graph:
+            # "</" escaped so copy can never close the <script> block early.
+            meta["jsonld"] = Markup(json.dumps({"@context": "https://schema.org", "@graph": graph},
+                                               ensure_ascii=False).replace("</", "<\\/"))
+        return meta
+
     @app.context_processor
     def inject_globals():
         return {
@@ -93,6 +143,7 @@ def create_app(config_class=Config):
             "tracking_script": site_content.tracking_script_for(
                 os.environ.get("TRACKING_HOST") or request.host),
             "current_year": datetime.now().year,
+            "page_meta": _page_meta(),
         }
 
     @app.after_request
@@ -108,8 +159,34 @@ def create_app(config_class=Config):
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
         return response
 
+    @app.after_request
+    def security_and_robots_headers(response):
+        headers = response.headers
+        headers.setdefault("X-Content-Type-Options", "nosniff")
+        headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+        # Geolocation stays allowed for this origin: track.js asks for GPS once.
+        headers.setdefault("Permissions-Policy", "camera=(), microphone=(), payment=(), geolocation=(self)")
+        # Keep everything that is not a public page out of search results,
+        # and keep Vercel preview/deployment hosts from competing with www.
+        internal = request.blueprint in ("admin", "inquiry", "chat", "track")
+        if internal or request.host.split(":")[0].endswith(".vercel.app"):
+            headers["X-Robots-Tag"] = "noindex, nofollow"
+        return response
+
     @app.errorhandler(404)
     def not_found(e):
+        # /explore-our-islands/ and friends: one permanent hop to the real URL
+        # instead of a 404 (Flask routes here are defined without the slash).
+        path = request.path
+        if request.method == "GET" and len(path) > 1 and path.endswith("/"):
+            try:
+                app.url_map.bind("").match(path.rstrip("/"), method="GET")
+            except HTTPException:
+                pass
+            else:
+                query = request.query_string.decode()
+                return redirect(path.rstrip("/") + (f"?{query}" if query else ""), code=301)
         return render_template("404.html"), 404
 
     return app

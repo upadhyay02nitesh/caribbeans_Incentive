@@ -3,17 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>{% block title %}{{ brand }} · {{ tagline }}{% endblock %}</title>
-  <meta name="description" content="{% block description %}Caribbean Incentive is a boutique Destination Management Company running corporate incentives, meetings, conferences and group programs across the Eastern Caribbean.{% endblock %}">
+  {# Title, description, canonical and share image per page: content/seo.py, via page_meta. #}
+  <title>{% block title %}{{ page_meta.title }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}{{ page_meta.description }}{% endblock %}">
+  {% if page_meta.canonical %}<link rel="canonical" href="{{ page_meta.canonical }}">{% endif %}
 
-  <meta property="og:title" content="{% block og_title %}{{ brand }}{% endblock %}">
-  <meta property="og:description" content="{% block og_description %}Your People, Our Home, Caribbean Connection.{% endblock %}">
+  <meta property="og:title" content="{{ page_meta.title }}">
+  <meta property="og:description" content="{{ page_meta.description }}">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="{{ brand }}">
+  <meta property="og:locale" content="en_US">
+  {% if page_meta.canonical %}<meta property="og:url" content="{{ page_meta.canonical }}">{% endif %}
+  <meta property="og:image" content="{{ page_meta.image }}">
+  <meta property="og:image:alt" content="{{ page_meta.crumb ~ ' · ' if page_meta.crumb }}{{ brand }}">
   <meta name="theme-color" content="#0A2124">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{% block twitter_title %}{{ brand }}{% endblock %}">
-  <meta name="twitter:description" content="{% block twitter_description %}Your People, Our Home, Caribbean Connection.{% endblock %}">
+  <meta name="twitter:title" content="{{ page_meta.title }}">
+  <meta name="twitter:description" content="{{ page_meta.description }}">
+  <meta name="twitter:image" content="{{ page_meta.image }}">
+  {% if page_meta.jsonld %}<script type="application/ld+json">{{ page_meta.jsonld }}</script>{% endif %}
 
   {# Real client brand mark — static/img/brand/, derived from the supplied logo. #}
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/brand/favicon-16.png') }}">

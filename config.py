@@ -12,6 +12,15 @@ class Config:
     SECRET_KEY = os.environ.get("FLASK_SECRET_KEY", "dev-key-not-secure")
     DEBUG = os.environ.get("FLASK_DEBUG", "0") == "1"
 
+    # Production origin for canonical URLs, og:url, sitemap.xml and robots.txt.
+    SITE_URL = os.environ.get("SITE_URL", "https://www.caribbean-incentive.com").strip().rstrip("/")
+
+    # Session cookie (admin sign-in). Secure follows the host: HTTPS-only on
+    # Vercel, plain HTTP still works for `python app.py` on localhost.
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SECURE = bool(os.environ.get("VERCEL") or os.environ.get("SESSION_COOKIE_SECURE"))
+
     INSTANCE_PATH = os.path.join(BASE_DIR, "instance")
 
     # Admin sign-in (/admin). Both required — blank disables sign-in.
